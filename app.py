@@ -149,7 +149,8 @@ st.markdown(
     div[data-testid="stSelectbox"] label,
     div[data-testid="stTextArea"] label,
     div[data-testid="stTextInput"] label,
-    div[data-testid="stRadio"] label {
+    div[data-testid="stRadio"] label,
+    div[data-testid="stCheckbox"] label {
         color: #5a1f1f !important;
         font-weight: 800 !important;
         font-size: 17px !important;
@@ -185,7 +186,11 @@ st.markdown(
     div[data-testid="stRadio"] label,
     div[data-testid="stRadio"] label *,
     div[data-testid="stRadio"] span,
-    div[data-testid="stRadio"] p {
+    div[data-testid="stRadio"] p,
+    div[data-testid="stCheckbox"] label,
+    div[data-testid="stCheckbox"] label *,
+    div[data-testid="stCheckbox"] span,
+    div[data-testid="stCheckbox"] p {
         color: #2d1810 !important;
         opacity: 1 !important;
         visibility: visible !important;
@@ -210,6 +215,21 @@ st.markdown(
         border-radius: 18px;
         overflow: hidden;
         margin: 12px 0;
+    }
+
+    .danger-card {
+        background: rgba(177, 18, 38, 0.08);
+        border: 2px solid rgba(177, 18, 38, 0.25);
+        border-radius: 22px;
+        padding: 20px;
+        margin: 24px 0;
+    }
+
+    .danger-title {
+        color: #b11226;
+        font-size: 22px;
+        font-weight: 900;
+        margin-bottom: 8px;
     }
 
     .footer {
@@ -447,6 +467,17 @@ def get_student_history(student_id, limit=30):
     )
 
     return result.data or []
+
+
+def delete_student_history(student_id):
+    result = (
+        supabase.table("study_logs")
+        .delete()
+        .eq("student_id", student_id)
+        .execute()
+    )
+
+    return result
 
 
 # =========================
@@ -801,6 +832,34 @@ def render_score_card(score, total):
 # =========================
 if task_type == "سجل أسئلتي":
     st.markdown("## 📚 سجل أسئلتي")
+
+    st.markdown(
+        """
+        <div class="danger-card">
+            <div class="danger-title">🗑️ حذف السجل</div>
+            <div class="small-note">
+                يمكنك حذف كل الأسئلة والأجوبة المحفوظة في حسابك. هذه العملية لا يمكن التراجع عنها.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    confirm_delete = st.checkbox("أؤكد أنني أريد حذف سجل أسئلتي بالكامل")
+
+    if st.button("🗑️ حذف سجل أسئلتي"):
+        if not confirm_delete:
+            st.warning("قبل الحذف، فعّل خانة التأكيد أولًا.")
+        else:
+            try:
+                delete_student_history(student["id"])
+                st.success("تم حذف سجل أسئلتك بنجاح.")
+                st.rerun()
+            except Exception as e:
+                st.error("حدث خطأ أثناء حذف السجل.")
+                st.code(str(e))
+
+    st.markdown("---")
 
     try:
         history = get_student_history(student["id"], limit=30)
