@@ -699,10 +699,78 @@ def get_student_classes(student_id):
     return items
 
 
-def create_teacher_quiz(teacher_id, class_id, title, topic, language, level, count):
-    prompt = build_quiz_prompt(language, level, topic, count)
-    answer_text = generate_with_retry(prompt)
-    quiz_data = extract_json(answer_text)
+def get_previous_questions_for_class(class_id, topic=None, limit=8):
+    query = (
+        supabase.table("teacher_quizzes")
+        .select("questions_json, topic")
+        .eq("class_id", class_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+
+    previous_questions = []
+
+    for item in query.data or []:
+        if topic:
+            old_topic = item.get("topic", "")
+            topic_clean = topic.strip().lower()
+            old_topic_clean = old_topic.strip().lower()
+
+            if topic_clean not in old_topic_clean and old_topic_clean not in topic_clean:
+                continue
+
+        questions_data = item.get("questions_json", {})
+
+        if isinstance(questions_data, str):
+            try:
+                questions_data = json.loads(questions_data)
+            except Exception:
+                questions_data = {}
+
+        for q in questions_data.get("questions", []):
+            question_text = q.get("question", "")
+            if question_text:
+                previous_questions.append(question_text)
+
+    return previous_questions
+
+
+def create_teacher_quiz(
+    teacher_id,
+    class_id,
+    title,
+    topic,
+    language,
+    level,
+    count=None,
+    manual_questions=None,
+    avoid_repeat=True
+):
+    if manual_questions:
+        quiz_data = {
+            "questions": manual_questions
+        }
+    else:
+        previous_questions = []
+
+        if avoid_repeat:
+            previous_questions = get_previous_questions_for_class(
+                class_id,
+                topic=topic,
+                limit=8
+            )
+
+        prompt = build_quiz_prompt(
+            language,
+            level,
+            topic,
+            count,
+            previous_questions=previous_questions
+        )
+
+        answer_text = generate_with_retry(prompt)
+        quiz_data = extract_json(answer_text)
 
     result = (
         supabase.table("teacher_quizzes")
@@ -930,7 +998,16 @@ def build_prompt(task, lang, student_level, text):
 """
 
 
-def build_quiz_prompt(lang, student_level, topic, count):
+def build_quiz_prompt(lang, student_level, topic, count, previous_questions=None):
+    previous_questions = previous_questions or []
+
+    avoid_text = ""
+
+    if previous_questions:
+        avoid_text = "\nتجنب تكرار هذه الأسئلة السابقة أو إعادة صياغتها بنفس الفكرة:\n"
+        for i, question in enumerate(previous_questions, start=1):
+            avoid_text += f"{i}. {question}\n"
+
     return f"""
 أنت مساعد دراسي ذكي.
 
@@ -942,6 +1019,13 @@ def build_quiz_prompt(lang, student_level, topic, count):
 يجب أن تكون الأسئلة اختيار من متعدد.
 كل سؤال يجب أن يحتوي على 4 اختيارات.
 يجب أن يكون هناك جواب صحيح واحد فقط.
+
+مهم جدًا:
+- اجعل الأسئلة مختلفة ومتنوعة.
+- لا تكرر نفس السؤال.
+- لا تستعمل نفس الفكرة بنفس الطريقة.
+- اجعل الاختيارات واضحة وغير مربكة.
+{avoid_text}
 
 أرجع النتيجة بصيغة JSON فقط بدون أي شرح خارج JSON.
 لا تكتب markdown.
@@ -1250,8 +1334,16 @@ if account_type == "teacher":
             selected_label = st.selectbox("اختر القسم:", list(class_labels.keys()))
             selected_class = class_labels[selected_label]
 
-            quiz_title = st.text_input("عنوان Quiz:", placeholder="مثال: Quiz المعادلات من الدرجة الأولى")
-            quiz_topic = st.text_area("موضوع Quiz:", placeholder="مثال: المعادلات من الدرجة الأولى", height=120)
+            quiz_title = st.text_input(
+                "عنوان Quiz:",
+                placeholder="مثال: Quiz المعادلات من الدرجة الأولى"
+            )
+
+            quiz_topic = st.text_area(
+                "موضوع Quiz:",
+                placeholder="مثال: المعادلات من الدرجة الأولى",
+                height=120
+            )
 
             quiz_language = st.selectbox(
                 "لغة Quiz:",
@@ -1263,14 +1355,123 @@ if account_type == "teacher":
                 ["ابتدائي", "إعدادي", "ثانوي", "جامعي"]
             )
 
-            quiz_count = st.selectbox("عدد الأسئلة:", [3, 5, 10])
+            question_creation_mode = st.radio(
+                "طريقة إنشاء الأسئلة:",
+                [
+                    "توليد تلقائي بواسطة AI",
+                    "كتابة الأسئلة يدويًا"
+                ],
+                horizontal=True
+            )
+
+            manual_questions = None
+            quiz_count = None
+            avoid_repeat = True
+
+            if question_creation_mode == "توليد تلقائي بواسطة AI":
+                quiz_count = st.selectbox("عدد الأسئلة:", [3, 5, 10])
+
+                avoid_repeat = st.checkbox(
+                    "تجنّب تكرار أسئلة Quiz السابقة لنفس القسم والموضوع",
+                    value=True
+                )
+
+                st.info(
+                    "عند تفعيل هذا الخيار، سيحاول التطبيق إنشاء أسئلة جديدة مختلفة عن الأسئلة السابقة."
+                )
+
+            else:
+                st.markdown("## ✍️ كتابة الأسئلة يدويًا")
+
+                manual_count = st.selectbox(
+                    "عدد الأسئلة التي تريد كتابتها:",
+                    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                )
+
+                manual_questions = []
+
+                for i in range(manual_count):
+                    with st.expander(f"السؤال {i + 1}", expanded=(i == 0)):
+                        question_text = st.text_area(
+                            f"نص السؤال {i + 1}:",
+                            key=f"manual_question_text_{i}"
+                        )
+
+                        choice_1 = st.text_input(
+                            "الاختيار 1:",
+                            key=f"manual_choice_1_{i}"
+                        )
+
+                        choice_2 = st.text_input(
+                            "الاختيار 2:",
+                            key=f"manual_choice_2_{i}"
+                        )
+
+                        choice_3 = st.text_input(
+                            "الاختيار 3:",
+                            key=f"manual_choice_3_{i}"
+                        )
+
+                        choice_4 = st.text_input(
+                            "الاختيار 4:",
+                            key=f"manual_choice_4_{i}"
+                        )
+
+                        correct_choice = st.selectbox(
+                            "اختر الجواب الصحيح:",
+                            ["الاختيار 1", "الاختيار 2", "الاختيار 3", "الاختيار 4"],
+                            key=f"manual_correct_choice_{i}"
+                        )
+
+                        explanation = st.text_area(
+                            "شرح الجواب الصحيح:",
+                            key=f"manual_explanation_{i}",
+                            placeholder="مثال: لأن هذا الجواب يطبق القاعدة بشكل صحيح..."
+                        )
+
+                        answer_index = {
+                            "الاختيار 1": 0,
+                            "الاختيار 2": 1,
+                            "الاختيار 3": 2,
+                            "الاختيار 4": 3
+                        }[correct_choice]
+
+                        manual_questions.append({
+                            "question": question_text,
+                            "choices": [
+                                choice_1,
+                                choice_2,
+                                choice_3,
+                                choice_4
+                            ],
+                            "answer_index": answer_index,
+                            "explanation": explanation
+                        })
 
             if st.button("✨ إنشاء وإرسال Quiz"):
                 if not quiz_title.strip() or not quiz_topic.strip():
                     st.warning("اكتب عنوان Quiz والموضوع أولًا.")
                 else:
-                    with st.spinner("جاري إنشاء Quiz وإرساله للقسم..."):
-                        try:
+                    try:
+                        if question_creation_mode == "كتابة الأسئلة يدويًا":
+                            incomplete = False
+
+                            for q in manual_questions:
+                                if not q["question"].strip():
+                                    incomplete = True
+
+                                for choice in q["choices"]:
+                                    if not choice.strip():
+                                        incomplete = True
+
+                                if not q["explanation"].strip():
+                                    incomplete = True
+
+                            if incomplete:
+                                st.warning("أكمل جميع الأسئلة والاختيارات والشرح قبل الإرسال.")
+                                st.stop()
+
+                        with st.spinner("جاري إنشاء Quiz وإرساله للقسم..."):
                             ok, result = create_teacher_quiz(
                                 account["id"],
                                 selected_class["id"],
@@ -1278,7 +1479,9 @@ if account_type == "teacher":
                                 quiz_topic,
                                 quiz_language,
                                 quiz_level,
-                                quiz_count
+                                count=quiz_count,
+                                manual_questions=manual_questions,
+                                avoid_repeat=avoid_repeat
                             )
 
                             if ok:
@@ -1286,9 +1489,9 @@ if account_type == "teacher":
                             else:
                                 st.error(result)
 
-                        except Exception as e:
-                            st.error("حدث خطأ أثناء إنشاء Quiz.")
-                            st.code(str(e))
+                    except Exception as e:
+                        st.error("حدث خطأ أثناء إنشاء Quiz.")
+                        st.code(str(e))
 
     elif teacher_page == "نتائج التلاميذ":
         st.markdown("## 📊 نتائج التلاميذ")
