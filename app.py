@@ -1,925 +1,977 @@
-import os
-import json
-import time
-import hashlib
-import streamlit as st
-from google import genai
-from supabase import create_client
-
-
-# =========================
-# إعداد الصفحة
-# =========================
-st.set_page_config(
-    page_title="AI Study Assistant Morocco",
-    page_icon="🇲🇦",
-    layout="centered"
-)
-
-
-# =========================
-# تصميم مغربي
-# =========================
-st.markdown(
-    """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Assistant Morocco - Enhanced UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    html, body, [class*="css"] {
-        font-family: 'Cairo', sans-serif;
-        direction: rtl;
-        text-align: right;
-    }
+        :root {
+            --morocco-red: #b11226;
+            --morocco-green: #006233;
+            --gold: #d4af37;
+            --gold-light: #ffe9a6;
+            --cream: #fff8ef;
+            --cream-dark: #f7efe3;
+            --text-dark: #2d1810;
+            --text-medium: #5d4037;
+            --shadow-soft: rgba(93, 64, 55, 0.10);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --shadow-strong: rgba(177, 18, 38, 0.25);
+        }
 
-    .stApp {
-        background:
-            radial-gradient(circle at top left, rgba(0, 98, 51, 0.16), transparent 32%),
-            radial-gradient(circle at bottom right, rgba(177, 18, 38, 0.18), transparent 32%),
-            linear-gradient(135deg, #fff8ef 0%, #f7efe3 50%, #fffaf3 100%);
-    }
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            background: 
+                radial-gradient(circle at top left, rgba(0, 98, 51, 0.12), transparent 35%),
+                radial-gradient(circle at bottom right, rgba(177, 18, 38, 0.14), transparent 35%),
+                linear-gradient(135deg, #fff8ef 0%, #fef5eb 30%, #fffaf5 70%, #fff8ef 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+            line-height: 1.7;
+            overflow-x: hidden;
+            position: relative;
+        }
 
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 2rem;
-        max-width: 900px;
-    }
+        /* Animated Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 98, 51, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-    .moroccan-hero {
-        background: linear-gradient(135deg, #b11226 0%, #006233 100%);
-        color: white;
-        padding: 28px 24px;
-        border-radius: 28px;
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
-        margin-bottom: 26px;
-        border: 3px solid #d4af37;
-        position: relative;
-        overflow: hidden;
-    }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
 
-    .moroccan-hero::before {
-        content: "✦ ✧ ✦ ✧ ✦ ✧ ✦";
-        position: absolute;
-        top: 12px;
-        left: 20px;
-        font-size: 22px;
-        color: rgba(255, 215, 0, 0.45);
-        letter-spacing: 8px;
-    }
+        /* ===== HERO SECTION - Enhanced ===== */
+        .hero {
+            background: linear-gradient(135deg, var(--morocco-red) 0%, #c41230 25%, var(--morocco-green) 75%, #007a3f 100%);
+            color: white;
+            padding: 3rem 2.5rem;
+            border-radius: 32px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.25),
+                0 0 0 3px var(--gold),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            animation: heroFloat 6s ease-in-out infinite;
+            transform-style: preserve-3d;
+        }
 
-    .moroccan-hero h1 {
-        font-size: 42px;
-        margin: 0;
-        font-weight: 800;
-        line-height: 1.25;
-    }
+        @keyframes heroFloat {
+            0%, 100% { transform: translateY(0px) rotateX(0deg); }
+            50% { transform: translateY(-8px) rotateX(1deg); }
+        }
 
-    .moroccan-hero p {
-        font-size: 18px;
-        line-height: 1.8;
-        margin-top: 14px;
-        margin-bottom: 0;
-        color: #fff7df;
-    }
+        .hero::before {
+            content: "✦ ✧ ✦ ✧ ✦ ✧ ✦";
+            position: absolute;
+            top: 16px;
+            left: 24px;
+            font-size: 24px;
+            color: rgba(255, 215, 0, 0.5);
+            letter-spacing: 10px;
+            animation: sparkle 3s ease-in-out infinite;
+        }
 
-    .moroccan-badge {
-        display: inline-block;
-        background: rgba(255, 255, 255, 0.16);
-        color: #ffe9a6;
-        padding: 7px 14px;
-        border-radius: 999px;
-        font-weight: 700;
-        margin-bottom: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.35);
-    }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
 
-    .section-card {
-        background: rgba(255, 255, 255, 0.85);
-        border: 1px solid rgba(212, 175, 55, 0.45);
-        border-radius: 24px;
-        padding: 20px;
-        margin: 18px 0;
-        box-shadow: 0 8px 24px rgba(93, 64, 55, 0.10);
-    }
+        .hero::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 60%);
+            animation: rotate 20s linear infinite;
+        }
 
-    .section-title {
-        color: #8b1e2d;
-        font-size: 25px;
-        font-weight: 800;
-        margin-bottom: 8px;
-    }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-    .small-note {
-        color: #5d4037;
-        font-size: 16px;
-        line-height: 1.8;
-    }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(10px);
+            color: var(--gold-light);
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 14px;
+            margin-bottom: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+            animation: badgePulse 2s ease-in-out infinite;
+        }
 
-    div[data-testid="stSelectbox"] label,
-    div[data-testid="stTextArea"] label,
-    div[data-testid="stTextInput"] label,
-    div[data-testid="stRadio"] label {
-        color: #5a1f1f !important;
-        font-weight: 800 !important;
-        font-size: 17px !important;
-    }
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+            50% { box-shadow: 0 0 20px 5px rgba(212, 175, 55, 0.2); }
+        }
 
-    textarea, input {
-        background-color: #fffdf7 !important;
-        border-radius: 16px !important;
-    }
+        .hero h1 {
+            font-size: clamp(32px, 6vw, 52px);
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to bottom, #ffffff 0%, #fff7df 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-    .stButton > button {
-        background: linear-gradient(135deg, #b11226 0%, #006233 100%);
-        color: white;
-        border: none;
-        border-radius: 18px;
-        padding: 0.75rem 1.4rem;
-        font-size: 18px;
-        font-weight: 800;
-        box-shadow: 0 8px 18px rgba(0, 98, 51, 0.25);
-        transition: 0.2s ease-in-out;
-    }
+        .hero p {
+            font-size: clamp(16px, 2.5vw, 19px);
+            line-height: 1.9;
+            color: #fff7df;
+            max-width: 650px;
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+        }
 
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 24px rgba(177, 18, 38, 0.28);
-        color: #fff7d6;
-    }
+        /* ===== SECTION CARDS - Glassmorphism ===== */
+        .card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(212, 175, 55, 0.35);
+            border-radius: 28px;
+            padding: 28px;
+            margin: 24px 0;
+            box-shadow: 
+                0 12px 36px var(--shadow-soft),
+                0 4px 12px rgba(212, 175, 55, 0.08);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
 
-    .result-box {
-        background: #fffdf7;
-        border-right: 6px solid #006233;
-        border-left: 6px solid #b11226;
-        border-radius: 22px;
-        padding: 22px;
-        margin-top: 20px;
-        box-shadow: 0 8px 22px rgba(0,0,0,0.08);
-    }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--morocco-red), var(--gold), var(--morocco-green));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
 
-    .footer {
-        text-align: center;
-        color: #7a5b2e;
-        font-size: 14px;
-        margin-top: 30px;
-        padding: 16px;
-    }
+        .card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 
+                0 20px 48px var(--shadow-medium),
+                0 8px 24px rgba(212, 175, 55, 0.15);
+            border-color: rgba(212, 175, 55, 0.55);
+        }
 
-    div[data-testid="stAlert"] {
-        border-radius: 18px;
-    }
+        .card:hover::before {
+            opacity: 1;
+        }
 
-    hr {
-        border: none;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #d4af37, transparent);
-        margin: 30px 0;
-    }
+        .section-title {
+            color: var(--morocco-red);
+            font-size: clamp(22px, 4vw, 28px);
+            font-weight: 900;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, var(--morocco-red), #c41230);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-desc {
+            color: var(--text-medium);
+            font-size: 16px;
+            line-height: 1.85;
+            font-weight: 400;
+        }
+
+        /* ===== FORM ELEMENTS - Modern ===== */
+        .form-group {
+            margin: 20px 0;
+        }
+
+        .form-label {
+            display: block;
+            color: #5a1f1f;
+            font-weight: 800;
+            font-size: 17px;
+            margin-bottom: 10px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 18px;
+            padding: 14px 18px;
+            font-size: 16px;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s ease;
+            direction: rtl;
+            text-align: right;
+            color: var(--text-dark);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--morocco-green);
+            box-shadow: 
+                0 0 0 4px rgba(0, 98, 51, 0.12),
+                0 8px 24px rgba(0, 98, 51, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .form-textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        /* ===== BUTTONS - Premium ===== */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--morocco-red) 0%, var(--morocco-green) 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 800;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            box-shadow: 
+                0 10px 28px var(--shadow-strong),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 16px 36px rgba(177, 18, 38, 0.35),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3);
+            color: #fff7d6;
+        }
+
+        .btn-primary:hover::before {
+            width: 350px;
+            height: 350px;
+        }
+
+        .btn-primary:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: var(--text-dark);
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            border-radius: 18px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            border-color: var(--gold);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ===== RESULT BOX - Enhanced ===== */
+        .result-box {
+            background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%);
+            border-right: 6px solid var(--morocco-green);
+            border-left: 6px solid var(--morocco-red);
+            border-radius: 26px;
+            padding: 28px;
+            margin-top: 24px;
+            box-shadow: 
+                0 12px 32px rgba(0, 0, 0, 0.09),
+                inset 0 2px 0 rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-box h2 {
+            color: var(--morocco-green);
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ===== WELCOME BAR ===== */
+        .welcome-bar {
+            background: linear-gradient(135deg, rgba(0, 98, 51, 0.08) 0%, rgba(177, 18, 38, 0.06) 100%);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 24px;
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .welcome-info h3 {
+            color: var(--morocco-green);
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .welcome-info p {
+            color: var(--text-medium);
+            font-size: 15px;
+        }
+
+        /* ===== RADIO GROUP - Custom ===== */
+        .radio-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .radio-option {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .radio-option label {
+            display: block;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 16px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .radio-option input[type="radio"] {
+            display: none;
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, var(--morocco-green) 0%, #007a3f 100%);
+            color: white;
+            border-color: var(--morocco-green);
+            box-shadow: 0 6px 20px rgba(0, 98, 51, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* ===== LOADING SPINNER ===== */
+        .loading-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            width: 56px;
+            height: 56px;
+            border: 5px solid rgba(212, 175, 55, 0.2);
+            border-top: 5px solid var(--morocco-green);
+            border-right: 5px solid var(--morocco-red);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-medium);
+            font-size: 17px;
+            font-weight: 600;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* ===== FOOTER - Premium ===== */
+        .footer {
+            text-align: center;
+            color: #7a5b2e;
+            font-size: 14px;
+            margin-top: 40px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 248, 239, 0.8) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .footer-icons {
+            font-size: 24px;
+            margin-bottom: 10px;
+            letter-spacing: 8px;
+        }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            border: none;
+            height: 3px;
+            background: linear-gradient(
+                90deg, 
+                transparent 0%, 
+                var(--gold) 20%, 
+                var(--morocco-red) 50%, 
+                var(--morocco-green) 80%, 
+                transparent 100%
+            );
+            margin: 36px 0;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            to { left: 150%; }
+        }
+
+        /* ===== ALERT BOXES ===== */
+        .alert {
+            padding: 18px 24px;
+            border-radius: 18px;
+            margin: 16px 0;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(0, 98, 51, 0.12) 0%, rgba(0, 122, 63, 0.08) 100%);
+            color: #006233;
+            border: 2px solid rgba(0, 98, 51, 0.3);
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(255, 217, 102, 0.1) 100%);
+            color: #856404;
+            border: 2px solid rgba(212, 175, 55, 0.4);
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, rgba(177, 18, 38, 0.12) 0%, rgba(196, 18, 48, 0.08) 100%);
+            color: var(--morocco-red);
+            border: 2px solid rgba(177, 18, 38, 0.3);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(0, 98, 51, 0.08) 0%, rgba(0, 122, 63, 0.05) 100%);
+            color: var(--morocco-green);
+            border: 2px solid rgba(0, 98, 51, 0.25);
+        }
+
+        /* ===== EXPANDER/ACCORDION ===== */
+        .expander {
+            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+            border: 2px solid rgba(212, 175, 55, 0.25);
+            border-radius: 18px;
+            margin: 12px 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .expander:hover {
+            border-color: rgba(212, 175, 55, 0.45);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.07);
+        }
+
+        .expander-header {
+            padding: 18px 22px;
+            cursor: pointer;
+            font-weight: 800;
+            color: var(--morocco-red);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, transparent 100%);
+            transition: all 0.3s ease;
+        }
+
+        .expander-header:hover {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(212, 175, 55, 0.03) 100%);
+        }
+
+        .expander-content {
+            padding: 0 22px 22px;
+            color: var(--text-medium);
+            line-height: 1.8;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 2rem 1.5rem;
+                border-radius: 24px;
+            }
+
+            .card {
+                padding: 20px;
+                border-radius: 22px;
+            }
+
+            .welcome-bar {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .radio-group {
+                flex-direction: column;
+            }
+
+            .btn-primary {
+                padding: 14px 24px;
+                font-size: 16px;
+            }
+        }
+
+        /* ===== UTILITY CLASSES ===== */
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: 16px; }
+        .mt-3 { margin-top: 24px; }
+        .mb-2 { margin-bottom: 16px; }
+        .mb-3 { margin-bottom: 24px; }
+
+        /* ===== SCROLLBAR CUSTOMIZATION ===== */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--morocco-red), var(--morocco-green));
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #c41230, #007a3f);
+        }
+
+        /* ===== SELECTION COLOR ===== */
+        ::selection {
+            background: rgba(212, 175, 55, 0.3);
+            color: var(--text-dark);
+        }
     </style>
-    """,
-    unsafe_allow_html=True
-)
+</head>
+<body>
+    <div class="container">
+        
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="badge">🇲🇦 Moroccan Study Assistant</div>
+            <h1>📚 AI Study Assistant</h1>
+            <p>
+                مساعد دراسي ذكي بطابع مغربي يساعدك على شرح الدروس، تلخيص النصوص،
+                إنشاء أسئلة للمراجعة، وحفظ أسئلة كل تلميذ في حسابه الخاص.
+            </p>
+        </div>
 
-
-# =========================
-# الهيدر
-# =========================
-st.markdown(
-    """
-    <div class="moroccan-hero">
-        <div class="moroccan-badge">🇲🇦 Moroccan Study Assistant</div>
-        <h1>📚 AI Study Assistant</h1>
-        <p>
-            مساعد دراسي ذكي بطابع مغربي يساعدك على شرح الدروس، تلخيص النصوص،
-            إنشاء أسئلة للمراجعة، وحفظ أسئلة كل تلميذ في حسابه الخاص.
-        </p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-# =========================
-# قراءة Secrets
-# =========================
-def get_secret(key, default=None):
-    value = os.getenv(key)
-    if value:
-        return value
-
-    try:
-        return st.secrets[key]
-    except Exception:
-        return default
-
-
-GEMINI_API_KEY = get_secret("GEMINI_API_KEY")
-SUPABASE_URL = get_secret("SUPABASE_URL")
-SUPABASE_KEY = get_secret("SUPABASE_SERVICE_ROLE_KEY")
-APP_SECRET = get_secret("APP_SECRET", "change_this_secret")
-
-
-if not GEMINI_API_KEY:
-    st.error("لم يتم العثور على GEMINI_API_KEY في Streamlit Secrets.")
-    st.stop()
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    st.error("لم يتم العثور على SUPABASE_URL أو SUPABASE_SERVICE_ROLE_KEY في Streamlit Secrets.")
-    st.stop()
-
-
-# =========================
-# إنشاء العملاء
-# =========================
-client = genai.Client(api_key=GEMINI_API_KEY)
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-
-# =========================
-# توليد جواب Gemini مع إعادة المحاولة
-# =========================
-def generate_with_retry(prompt, max_retries=3):
-    models = [
-        "gemini-2.5-flash",
-        "gemini-2.5-flash-lite"
-    ]
-
-    last_error = None
-
-    for model_name in models:
-        for attempt in range(max_retries):
-            try:
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=prompt
-                )
-
-                if response.text:
-                    return response.text
-
-                raise Exception("Gemini returned an empty response.")
-
-            except Exception as e:
-                last_error = e
-                error_text = str(e).lower()
-
-                if (
-                    "503" in error_text
-                    or "unavailable" in error_text
-                    or "overloaded" in error_text
-                    or "model is overloaded" in error_text
-                ):
-                    time.sleep(2 + attempt * 2)
-                    continue
-
-                if (
-                    "429" in error_text
-                    or "resource_exhausted" in error_text
-                    or "rate limit" in error_text
-                    or "quota" in error_text
-                ):
-                    time.sleep(5 + attempt * 5)
-                    continue
-
-                raise e
-
-    raise last_error
-
-
-# =========================
-# أدوات الحساب
-# =========================
-def normalize_name(name):
-    return " ".join(name.strip().lower().split())
-
-
-def hash_pin(pin):
-    raw = f"{APP_SECRET}:{pin}".encode("utf-8")
-    return hashlib.sha256(raw).hexdigest()
-
-
-def create_student(name, pin):
-    name = name.strip()
-    name_key = normalize_name(name)
-
-    if not name or not pin:
-        return False, "اكتب الاسم والرمز السري."
-
-    if len(pin) < 4:
-        return False, "الرمز السري يجب أن يحتوي على 4 أحرف أو أرقام على الأقل."
-
-    existing = (
-        supabase.table("students")
-        .select("*")
-        .eq("name_key", name_key)
-        .execute()
-    )
-
-    if existing.data:
-        return False, "هذا الاسم مسجل من قبل. جرّب تسجيل الدخول."
-
-    result = (
-        supabase.table("students")
-        .insert({
-            "name": name,
-            "name_key": name_key,
-            "pin_hash": hash_pin(pin)
-        })
-        .execute()
-    )
-
-    if result.data:
-        return True, result.data[0]
-
-    return False, "حدث خطأ أثناء إنشاء الحساب."
-
-
-def login_student(name, pin):
-    name_key = normalize_name(name)
-
-    result = (
-        supabase.table("students")
-        .select("*")
-        .eq("name_key", name_key)
-        .execute()
-    )
-
-    if not result.data:
-        return False, "لا يوجد حساب بهذا الاسم."
-
-    student = result.data[0]
-
-    if student["pin_hash"] != hash_pin(pin):
-        return False, "الرمز السري غير صحيح."
-
-    return True, student
-
-
-def save_interaction(student_id, task_type, language, level, question, answer):
-    supabase.table("study_logs").insert({
-        "student_id": student_id,
-        "task_type": task_type,
-        "language": language,
-        "level": level,
-        "question": question,
-        "answer": answer
-    }).execute()
-
-
-def get_student_history(student_id, limit=30):
-    result = (
-        supabase.table("study_logs")
-        .select("*")
-        .eq("student_id", student_id)
-        .order("created_at", desc=True)
-        .limit(limit)
-        .execute()
-    )
-
-    return result.data or []
-
-
-# =========================
-# Session State
-# =========================
-if "student" not in st.session_state:
-    st.session_state.student = None
-
-if "quiz_questions" not in st.session_state:
-    st.session_state.quiz_questions = []
-
-
-# =========================
-# تسجيل الدخول / إنشاء حساب
-# =========================
-if st.session_state.student is None:
-    st.markdown(
-        """
-        <div class="section-card">
-            <div class="section-title">👤 دخول التلميذ</div>
-            <div class="small-note">
+        <!-- Login Section -->
+        <div class="card">
+            <h2 class="section-title">👤 دخول التلميذ</h2>
+            <p class="section-desc">
                 أنشئ حسابًا باسمك ورمز سري، وبعدها ستبقى أسئلتك محفوظة في حسابك.
+            </p>
+
+            <hr class="divider">
+
+            <div class="form-group">
+                <label class="form-label">اختر العملية:</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="login" name="mode" checked>
+                        <label for="login">تسجيل الدخول</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="register" name="mode">
+                        <label for="register">إنشاء حساب جديد</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="name">اسم التلميذ:</label>
+                <input type="text" id="name" class="form-input" placeholder="اكتب اسمك هنا...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="pin">الرمز السري:</label>
+                <input type="password" id="pin" class="form-input" placeholder="اكتب الرمز السري...">
+            </div>
+
+            <button class="btn-primary" onclick="handleAuth()">
+                <span>🚀</span>
+                <span>دخول / إنشاء حساب</span>
+            </button>
+        </div>
+
+        <!-- Welcome Bar (Hidden by default) -->
+        <div class="welcome-bar" id="welcomeBar" style="display: none;">
+            <div class="welcome-info">
+                <h3>مرحبا <span id="studentName">---</span> 👋</h3>
+                <p>أنت الآن داخل حسابك. كل سؤال وجواب سيتم حفظه في سجلك الدراسي.</p>
+            </div>
+            <button class="btn-secondary" onclick="logout()">تسجيل الخروج</button>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="card">
+            <h2 class="section-title">⚙️ إعدادات المساعدة</h2>
+            <p class="section-desc">اختر نوع المساعدة، اللغة، والمستوى الدراسي.</p>
+
+            <hr class="divider">
+
+            <div class="form-group">
+                <label class="form-label" for="taskType">اختر نوع المساعدة:</label>
+                <select id="taskType" class="form-select">
+                    <option value="explain">شرح درس</option>
+                    <option value="summarize">تلخيص نص</option>
+                    <option value="questions">إنشاء أسئلة للمراجعة</option>
+                    <option value="simplify">تبسيط مفهوم</option>
+                    <option value="correct">تصحيح جواب</option>
+                    <option value="quiz">Quiz Mode</option>
+                    <option value="history">سجل أسئلتي</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="language">اختر اللغة:</label>
+                <select id="language" class="form-select">
+                    <option value="ar">العربية</option>
+                    <option value="fr">الفرنسية</option>
+                    <option value="en">الإنجليزية</option>
+                    <option value="ma">الدارجة المغربية</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="level">اختر المستوى الدراسي:</label>
+                <select id="level" class="form-select">
+                    <option value="primary">ابتدائي</option>
+                    <option value="middle">إعدادي</option>
+                    <option value="secondary">ثانوي</option>
+                    <option value="university">جامعي</option>
+                </select>
             </div>
         </div>
-        """,
-        unsafe_allow_html=True
-    )
 
-    mode = st.radio(
-        "اختر العملية:",
-        ["تسجيل الدخول", "إنشاء حساب جديد"],
-        horizontal=True
-    )
-
-    student_name = st.text_input("اسم التلميذ:")
-    student_pin = st.text_input("الرمز السري:", type="password")
-
-    if mode == "إنشاء حساب جديد":
-        if st.button("إنشاء الحساب"):
-            try:
-                ok, result = create_student(student_name, student_pin)
-
-                if ok:
-                    st.session_state.student = result
-                    st.success("تم إنشاء الحساب بنجاح.")
-                    st.rerun()
-                else:
-                    st.warning(result)
-
-            except Exception as e:
-                st.error("حدث خطأ أثناء إنشاء الحساب.")
-                st.code(str(e))
-
-    else:
-        if st.button("تسجيل الدخول"):
-            try:
-                ok, result = login_student(student_name, student_pin)
-
-                if ok:
-                    st.session_state.student = result
-                    st.success("تم تسجيل الدخول بنجاح.")
-                    st.rerun()
-                else:
-                    st.warning(result)
-
-            except Exception as e:
-                st.error("حدث خطأ أثناء تسجيل الدخول.")
-                st.code(str(e))
-
-    st.stop()
-
-
-student = st.session_state.student
-
-
-# =========================
-# ترحيب الطالب
-# =========================
-st.markdown(
-    f"""
-    <div class="section-card">
-        <div class="section-title">مرحبا {student["name"]} 👋</div>
-        <div class="small-note">
-            أنت الآن داخل حسابك. كل سؤال وجواب سيتم حفظه في سجلك الدراسي.
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-if st.button("تسجيل الخروج"):
-    st.session_state.student = None
-    st.session_state.quiz_questions = []
-    st.rerun()
-
-
-# =========================
-# إعدادات المساعدة
-# =========================
-st.markdown(
-    """
-    <div class="section-card">
-        <div class="section-title">⚙️ إعدادات المساعدة</div>
-        <div class="small-note">
-            اختر نوع المساعدة، اللغة، والمستوى الدراسي.
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-task_type = st.selectbox(
-    "اختر نوع المساعدة:",
-    [
-        "شرح درس",
-        "تلخيص نص",
-        "إنشاء أسئلة للمراجعة",
-        "تبسيط مفهوم",
-        "تصحيح جواب",
-        "Quiz Mode",
-        "سجل أسئلتي"
-    ]
-)
-
-language = st.selectbox(
-    "اختر اللغة:",
-    [
-        "العربية",
-        "الفرنسية",
-        "الإنجليزية",
-        "الدارجة المغربية"
-    ]
-)
-
-level = st.selectbox(
-    "اختر المستوى الدراسي:",
-    [
-        "ابتدائي",
-        "إعدادي",
-        "ثانوي",
-        "جامعي"
-    ]
-)
-
-
-# =========================
-# Prompts
-# =========================
-def build_prompt(task, lang, student_level, text):
-    if task == "شرح درس":
-        return f"""
-أنت مساعد دراسي ذكي.
-
-اشرح الدرس التالي باللغة {lang}.
-اجعل الشرح مناسبًا لمستوى {student_level}.
-استعمل أسلوبًا واضحًا ومنظمًا.
-
-نظم الجواب بهذا الشكل:
-1. شرح بسيط وواضح
-2. مثال تطبيقي
-3. أهم النقاط التي يجب حفظها
-4. تمرين صغير في النهاية
-5. نصيحة للمراجعة
-
-الدرس أو السؤال:
-{text}
-"""
-
-    elif task == "تلخيص نص":
-        return f"""
-أنت مساعد دراسي ذكي.
-
-لخص النص التالي باللغة {lang}.
-اجعل الملخص مناسبًا لمستوى {student_level}.
-
-نظم الجواب بهذا الشكل:
-1. ملخص قصير
-2. أهم الأفكار
-3. كلمات مفتاحية
-4. أسئلة صغيرة للمراجعة
-
-النص:
-{text}
-"""
-
-    elif task == "إنشاء أسئلة للمراجعة":
-        return f"""
-أنت مساعد دراسي ذكي.
-
-أنشئ أسئلة مراجعة باللغة {lang}.
-اجعل الأسئلة مناسبة لمستوى {student_level}.
-
-نظم الجواب بهذا الشكل:
-1. أسئلة مباشرة
-2. أسئلة اختيار من متعدد مع الأجوبة
-3. أسئلة صح أو خطأ مع التصحيح
-4. سؤال تطبيقي
-5. الأجوبة النموذجية
-
-الموضوع:
-{text}
-"""
-
-    elif task == "تبسيط مفهوم":
-        return f"""
-أنت مساعد دراسي ذكي.
-
-بسط المفهوم التالي باللغة {lang}.
-اجعل الشرح مناسبًا لمستوى {student_level}.
-
-نظم الجواب بهذا الشكل:
-1. تعريف بسيط
-2. شرح كأنني مبتدئ
-3. مثال من الحياة اليومية
-4. مثال دراسي
-5. خلاصة قصيرة
-
-المفهوم:
-{text}
-"""
-
-    elif task == "تصحيح جواب":
-        return f"""
-أنت مساعد دراسي ذكي.
-
-صحح جواب الطالب التالي باللغة {lang}.
-اجعل التصحيح مناسبًا لمستوى {student_level}.
-
-نظم الجواب بهذا الشكل:
-1. هل الجواب صحيح أم خطأ؟
-2. شرح الخطأ إن وجد
-3. الجواب الصحيح
-4. نصيحة لتحسين الإجابة
-
-جواب الطالب:
-{text}
-"""
-
-    else:
-        return f"""
-أجب عن السؤال التالي باللغة {lang}
-وبطريقة مناسبة لمستوى {student_level}:
-
-{text}
-"""
-
-
-def build_quiz_prompt(lang, student_level, topic, count):
-    return f"""
-أنت مساعد دراسي ذكي.
-
-أنشئ اختبار Quiz باللغة {lang}.
-المستوى الدراسي: {student_level}
-الموضوع: {topic}
-عدد الأسئلة: {count}
-
-يجب أن تكون الأسئلة اختيار من متعدد.
-كل سؤال يجب أن يحتوي على 4 اختيارات.
-يجب أن يكون هناك جواب صحيح واحد فقط.
-
-أرجع النتيجة بصيغة JSON فقط بدون أي شرح خارج JSON.
-لا تكتب markdown.
-لا تكتب ```json.
-
-استعمل هذا الشكل بالضبط:
-
-{{
-  "questions": [
-    {{
-      "question": "نص السؤال هنا",
-      "choices": ["اختيار 1", "اختيار 2", "اختيار 3", "اختيار 4"],
-      "answer_index": 0,
-      "explanation": "شرح مختصر للجواب الصحيح"
-    }}
-  ]
-}}
-"""
-
-
-def extract_json(text):
-    text = text.strip()
-    text = text.replace("```json", "")
-    text = text.replace("```", "")
-
-    start = text.find("{")
-    end = text.rfind("}")
-
-    if start != -1 and end != -1:
-        text = text[start:end + 1]
-
-    return json.loads(text)
-
-
-# =========================
-# سجل الأسئلة
-# =========================
-if task_type == "سجل أسئلتي":
-    st.markdown("## 📚 سجل أسئلتي")
-
-    try:
-        history = get_student_history(student["id"], limit=30)
-
-        if not history:
-            st.info("لا توجد أسئلة محفوظة بعد.")
-        else:
-            for item in history:
-                date = item.get("created_at", "")[:10]
-                title = f'{item["task_type"]} — {date}'
-
-                with st.expander(title):
-                    st.markdown("**السؤال:**")
-                    st.write(item["question"])
-
-                    st.markdown("**الجواب:**")
-                    st.write(item["answer"])
-
-                    st.caption(
-                        f'اللغة: {item.get("language", "")} | المستوى: {item.get("level", "")}'
-                    )
-
-    except Exception as e:
-        st.error("حدث خطأ أثناء جلب السجل.")
-        st.code(str(e))
-
-
-# =========================
-# Quiz Mode
-# =========================
-elif task_type == "Quiz Mode":
-    st.markdown(
-        """
-        <div class="section-card">
-            <div class="section-title">🧠 Quiz Mode</div>
-            <div class="small-note">
-                اكتب موضوعًا وسيقوم التطبيق بإنشاء اختبار تفاعلي لك مع التصحيح والشرح.
+        <!-- Input Section -->
+        <div class="card">
+            <h2 class="section-title">🌟 أمثلة يمكنك تجربتها</h2>
+            <p class="section-desc">اختر مثالًا جاهزًا أو اكتب سؤالك بنفسك في المربع.</p>
+
+            <hr class="divider">
+
+            <div class="form-group">
+                <label class="form-label" for="example">اختر مثالًا:</label>
+                <select id="example" class="form-select" onchange="setExample()">
+                    <option value="">اكتب سؤالك بنفسك</option>
+                    <option value="اشرح لي درس المتطابقات الهامة مع أمثلة">اشرح لي درس المتطابقات الهامة مع أمثلة</option>
+                    <option value="لخص لي درس الجهاز الهضمي">لخص لي درس الجهاز الهضمي</option>
+                    <option value="أعطني 10 أسئلة حول درس الحرب العالمية الثانية">أعطني 10 أسئلة حول درس الحرب العالمية الثانية</option>
+                    <option value="اشرح لي المعادلات من الدرجة الأولى">اشرح لي المعادلات من الدرجة الأولى</option>
+                    <option value="بسط لي مفهوم الطاقة الكهربائية">بسط لي مفهوم الطاقة الكهربائية</option>
+                </select>
             </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
-    quiz_topic = st.text_area(
-        "اكتب موضوع الاختبار:",
-        height=120,
-        placeholder="مثال: المتطابقات الهامة، الجهاز الهضمي، الحرب العالمية الثانية..."
-    )
-
-    quiz_count = st.selectbox(
-        "اختر عدد الأسئلة:",
-        [3, 5, 10]
-    )
-
-    if st.button("✨ إنشاء Quiz"):
-        if quiz_topic.strip() == "":
-            st.warning("اكتب موضوع الاختبار أولًا.")
-        else:
-            with st.spinner("جاري إنشاء الاختبار... إذا كان هناك ضغط على الخادم سيحاول التطبيق تلقائيًا مرة أخرى."):
-                try:
-                    prompt = build_quiz_prompt(
-                        language,
-                        level,
-                        quiz_topic,
-                        quiz_count
-                    )
-
-                    answer_text = generate_with_retry(prompt)
-                    quiz_data = extract_json(answer_text)
-
-                    st.session_state.quiz_questions = quiz_data["questions"]
-
-                    st.success("تم إنشاء الاختبار بنجاح. أجب عن الأسئلة بالأسفل.")
-
-                except Exception as e:
-                    st.error("حدث خطأ أثناء إنشاء الاختبار. جرّب عدد أسئلة أقل أو أعد المحاولة بعد قليل.")
-                    st.write("تفاصيل الخطأ:")
-                    st.code(str(e))
-
-    if st.session_state.quiz_questions:
-        st.markdown("## 📝 الأسئلة")
-
-        user_answers = []
-
-        for i, q in enumerate(st.session_state.quiz_questions):
-            st.markdown(f"### السؤال {i + 1}")
-            st.write(q["question"])
-
-            answer = st.radio(
-                "اختر الجواب:",
-                q["choices"],
-                key=f"question_{i}"
-            )
-
-            selected_index = q["choices"].index(answer)
-            user_answers.append(selected_index)
-
-        if st.button("✅ تصحيح Quiz"):
-            score = 0
-            result_text = ""
-
-            st.markdown("## 🏆 النتيجة")
-
-            for i, q in enumerate(st.session_state.quiz_questions):
-                correct_index = int(q["answer_index"])
-                selected_index = user_answers[i]
-
-                st.markdown(f"### السؤال {i + 1}")
-
-                if selected_index == correct_index:
-                    score += 1
-                    st.success("إجابة صحيحة ✅")
-                    status = "صحيح"
-                else:
-                    st.error("إجابة خاطئة ❌")
-                    status = "خطأ"
-
-                st.write("**السؤال:**", q["question"])
-                st.write("**جوابك:**", q["choices"][selected_index])
-                st.write("**الجواب الصحيح:**", q["choices"][correct_index])
-                st.write("**الشرح:**", q["explanation"])
-
-                result_text += f"""
-السؤال {i + 1}: {q["question"]}
-جواب الطالب: {q["choices"][selected_index]}
-الجواب الصحيح: {q["choices"][correct_index]}
-النتيجة: {status}
-الشرح: {q["explanation"]}
-
-"""
-
-            total = len(st.session_state.quiz_questions)
-            percentage = int((score / total) * 100)
-
-            st.markdown("---")
-            st.markdown(f"## درجتك: {score} / {total}")
-
-            if percentage >= 80:
-                st.balloons()
-                st.success("ممتاز بزاف! مستواك رائع 🇲🇦")
-            elif percentage >= 50:
-                st.info("مزيان، ولكن خاصك تراجع بعض النقاط.")
-            else:
-                st.warning("خاصك تراجع الدرس مرة أخرى وتحاول من جديد.")
-
-            try:
-                save_interaction(
-                    student["id"],
-                    "Quiz Mode",
-                    language,
-                    level,
-                    quiz_topic,
-                    f"الدرجة: {score}/{total}\n\n{result_text}"
-                )
-                st.success("تم حفظ نتيجة Quiz في سجلك.")
-            except Exception as e:
-                st.warning("تم التصحيح، لكن لم يتم حفظ النتيجة.")
-                st.code(str(e))
-
-    if st.button("🗑️ مسح Quiz"):
-        st.session_state.quiz_questions = []
-        st.rerun()
-
-
-# =========================
-# باقي المهام
-# =========================
-else:
-    st.markdown(
-        """
-        <div class="section-card">
-            <div class="section-title">🌟 أمثلة يمكنك تجربتها</div>
-            <div class="small-note">
-                اختر مثالًا جاهزًا أو اكتب سؤالك بنفسك في المربع.
+            <div class="form-group">
+                <label class="form-label" for="userInput">اكتب الدرس أو النص أو السؤال هنا:</label>
+                <textarea id="userInput" class="form-textarea" placeholder="اكتب سؤالك أو النص هنا..."></textarea>
             </div>
+
+            <button class="btn-primary" onclick="submitQuery()">
+                <span>🚀</span>
+                <span>إرسال</span>
+            </button>
         </div>
-        """,
-        unsafe_allow_html=True
-    )
 
-    example = st.selectbox(
-        "اختر مثالًا أو اكتب سؤالك بنفسك:",
-        [
-            "",
-            "اشرح لي درس المتطابقات الهامة مع أمثلة",
-            "لخص لي درس الجهاز الهضمي",
-            "أعطني 10 أسئلة حول درس الحرب العالمية الثانية",
-            "اشرح لي المعادلات من الدرجة الأولى",
-            "بسط لي مفهوم الطاقة الكهربائية"
-        ]
-    )
+        <!-- Loading State (Hidden by default) -->
+        <div class="loading-container" id="loadingState" style="display: none;">
+            <div class="spinner"></div>
+            <p class="loading-text">جاري توليد الجواب... ⏳</p>
+        </div>
 
-    user_input = st.text_area(
-        "اكتب الدرس أو النص أو السؤال هنا:",
-        value=example,
-        height=180
-    )
+        <!-- Result Box (Hidden by default) -->
+        <div class="result-box" id="resultBox" style="display: none;">
+            <h2>📌 الجواب</h2>
+            <div id="resultContent"></div>
+        </div>
 
-    if st.button("🚀 إرسال"):
-        if user_input.strip() == "":
-            st.warning("اكتب شيئًا أولًا.")
-        else:
-            with st.spinner("جاري توليد الجواب... إذا كان هناك ضغط على الخادم سيحاول التطبيق تلقائيًا مرة أخرى."):
-                try:
-                    prompt = build_prompt(task_type, language, level, user_input)
+        <!-- Success Alert Example -->
+        <div class="alert alert-success mt-3" style="display: none;" id="successAlert">
+            <span>✅</span>
+            <span>تم حفظ السؤال والجواب في سجلك!</span>
+        </div>
 
-                    answer_text = generate_with_retry(prompt)
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-icons">🇲🇦 📚 🤖 ✨</div>
+            <strong>AI Study Assistant Morocco</strong><br>
+            تصميم مستوحى من الألوان المغربية والزليج التقليدي<br>
+            تم إنشاؤه باستخدام Streamlit و Google Gemini API و Supabase<br>
+            <small style="opacity: 0.7; margin-top: 8px; display: inline-block;">© 2024 - جميع الحقوق محفوظة</small>
+        </div>
 
-                    st.markdown(
-                        """
-                        <div class="result-box">
-                            <h2>📌 الجواب</h2>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-                    st.write(answer_text)
-
-                    save_interaction(
-                        student["id"],
-                        task_type,
-                        language,
-                        level,
-                        user_input,
-                        answer_text
-                    )
-
-                    st.success("تم حفظ السؤال والجواب في سجلك.")
-
-                except Exception as e:
-                    st.error("حدث خطأ أثناء توليد الجواب أو حفظه. جرّب مرة أخرى بعد قليل.")
-                    st.write("تفاصيل الخطأ:")
-                    st.code(str(e))
-
-
-# =========================
-# الفوتر
-# =========================
-st.markdown(
-    """
-    <div class="footer">
-        🇲🇦 AI Study Assistant — تصميم مستوحى من الألوان المغربية والزليج التقليدي<br>
-        تم إنشاؤه باستعمال Streamlit و Google Gemini API و Supabase
     </div>
-    """,
-    unsafe_allow_html=True
-)
+
+    <script>
+        // Set example in textarea
+        function setExample() {
+            const select = document.getElementById('example');
+            const textarea = document.getElementById('userInput');
+            textarea.value = select.value;
+        }
+
+        // Handle authentication (demo)
+        function handleAuth() {
+            const name = document.getElementById('name').value;
+            const pin = document.getElementById('pin').value;
+
+            if (!name || !pin) {
+                showAlert('warning', 'يرجى كتابة الاسم والرمز السري.');
+                return;
+            }
+
+            if (pin.length < 4) {
+                showAlert('warning', 'الرمز السري يجب أن يحتوي على 4 أحرف أو أرقام على الأقل.');
+                return;
+            }
+
+            // Simulate login success
+            document.getElementById('studentName').textContent = name;
+            document.getElementById('welcomeBar').style.display = 'flex';
+            showAlert('success', `مرحباً ${name}! تم تسجيل الدخول بنجاح.`);
+            
+            // Scroll to welcome bar
+            document.getElementById('welcomeBar').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Logout function
+        function logout() {
+            document.getElementById('welcomeBar').style.display = 'none';
+            document.getElementById('name').value = '';
+            document.getElementById('pin').value = '';
+            showAlert('info', 'تم تسجيل الخروج بنجاح.');
+        }
+
+        // Submit query (demo)
+        function submitQuery() {
+            const input = document.getElementById('userInput').value;
+
+            if (!input.trim()) {
+                showAlert('warning', 'اكتب شيئًا أولًا.');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('resultBox').style.display = 'none';
+
+            // Scroll to loading
+            document.getElementById('loadingState').scrollIntoView({ behavior: 'smooth' });
+
+            // Simulate API call
+            setTimeout(() => {
+                document.getElementById('loadingState').style.display = 'none';
+                
+                // Show result
+                const resultBox = document.getElementById('resultBox');
+                const resultContent = document.getElementById('resultContent');
+                
+                resultContent.innerHTML = `
+                    <p style="line-height: 1.9; color: #5d4037;">
+                        <strong style="color: #006233;">💡 هذا عرض توضيحي للنتيجة:</strong><br><br>
+                        بناءً على سؤالك: "<em>${input}</em>"<br><br>
+                        سيتم هنا عرض الإجابة من الذكاء الاصطناعي بعد ربط التطبيق بالـ API الفعلي.
+                        <br><br>
+                        <span style="color: #b11226; font-weight: 700;">✨ النتيجة ستظهر هنا بشكل منظم وجميل!</span>
+                    </p>
+                `;
+                
+                resultBox.style.display = 'block';
+                document.getElementById('successAlert').style.display = 'flex';
+                
+                // Scroll to result
+                resultBox.scrollIntoView({ behavior: 'smooth' });
+                
+            }, 2500);
+        }
+
+        // Show alert function
+        function showAlert(type, message) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert-toast');
+            existingAlerts.forEach(alert => alert.remove());
+
+            // Create new alert
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-toast`;
+            alert.style.position = 'fixed';
+            alert.style.top = '20px';
+            alert.style.left = '50%';
+            alert.style.transform = 'translateX(-50%)';
+            alert.style.zIndex = '9999';
+            alert.style.maxWidth = '90%';
+            alert.style.width = '500px';
+            alert.style.boxShadow = '0 10px 40px rgba(0,0,0,0.2)';
+
+            const icons = {
+                success: '✅',
+                warning: '⚠️',
+                error: '❌',
+                info: 'ℹ️'
+            };
+
+            alert.innerHTML = `<span>${icons[type]}</span><span>${message}</span>`;
+            document.body.appendChild(alert);
+
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                alert.style.animation = 'slideDown 0.3s ease-out reverse';
+                setTimeout(() => alert.remove(), 300);
+            }, 4000);
+        }
+
+        // Add smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
