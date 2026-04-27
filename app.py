@@ -19,25 +19,20 @@ st.set_page_config(
 
 
 # =========================
-# CSS التصميم
+# CSS التصميم المغربي
 # =========================
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Tajawal:wght@300;400;500;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
 
     :root {
         --morocco-red: #b11226;
         --morocco-green: #006233;
         --gold: #d4af37;
-        --gold-light: #ffe9a6;
         --cream: #fff8ef;
-        --cream-dark: #f7efe3;
         --text-dark: #2d1810;
         --text-medium: #5d4037;
-        --shadow-soft: rgba(93, 64, 55, 0.10);
-        --shadow-medium: rgba(0, 0, 0, 0.15);
-        --shadow-strong: rgba(177, 18, 38, 0.25);
     }
 
     html, body, [class*="css"] {
@@ -50,7 +45,7 @@ st.markdown(
         background:
             radial-gradient(circle at top left, rgba(0, 98, 51, 0.12), transparent 35%),
             radial-gradient(circle at bottom right, rgba(177, 18, 38, 0.14), transparent 35%),
-            linear-gradient(135deg, #fff8ef 0%, #fef5eb 30%, #fffaf5 70%, #fff8ef 100%);
+            linear-gradient(135deg, #fff8ef 0%, #fef5eb 45%, #fffaf5 100%);
         color: var(--text-dark);
     }
 
@@ -61,15 +56,14 @@ st.markdown(
     }
 
     .moroccan-hero {
-        background: linear-gradient(135deg, var(--morocco-red) 0%, #c41230 25%, var(--morocco-green) 75%, #007a3f 100%);
+        background: linear-gradient(135deg, #b11226 0%, #c41230 30%, #006233 100%);
         color: white;
-        padding: 3rem 2.5rem;
-        border-radius: 32px;
+        padding: 2.5rem 2rem;
+        border-radius: 30px;
         box-shadow:
-            0 20px 60px rgba(0, 0, 0, 0.25),
-            0 0 0 3px var(--gold),
-            inset 0 2px 0 rgba(255, 255, 255, 0.2);
-        margin-bottom: 2.5rem;
+            0 18px 45px rgba(0, 0, 0, 0.22),
+            0 0 0 3px #d4af37;
+        margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
     }
@@ -79,23 +73,21 @@ st.markdown(
         position: absolute;
         top: 16px;
         left: 24px;
-        font-size: 24px;
+        font-size: 22px;
         color: rgba(255, 215, 0, 0.5);
-        letter-spacing: 10px;
+        letter-spacing: 9px;
     }
 
     .moroccan-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+        display: inline-block;
         background: rgba(255, 255, 255, 0.18);
-        color: var(--gold-light);
-        padding: 10px 20px;
+        color: #ffe9a6;
+        padding: 9px 18px;
         border-radius: 999px;
         font-weight: 800;
         font-size: 14px;
         margin-bottom: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.35);
         position: relative;
         z-index: 1;
     }
@@ -103,58 +95,55 @@ st.markdown(
     .moroccan-hero h1 {
         font-size: clamp(32px, 6vw, 52px);
         font-weight: 900;
-        line-height: 1.2;
-        margin-bottom: 16px;
+        line-height: 1.25;
+        margin-bottom: 14px;
+        color: white;
         position: relative;
         z-index: 1;
-        color: #ffffff;
     }
 
     .moroccan-hero p {
-        font-size: clamp(16px, 2.5vw, 19px);
+        font-size: 18px;
         line-height: 1.9;
         color: #fff7df;
-        max-width: 700px;
+        max-width: 720px;
+        margin: 0;
         position: relative;
         z-index: 1;
-        margin: 0;
     }
 
     .section-card {
-        background: rgba(255, 255, 255, 0.90);
+        background: rgba(255, 255, 255, 0.92);
         border: 2px solid rgba(212, 175, 55, 0.35);
-        border-radius: 28px;
-        padding: 28px;
+        border-radius: 26px;
+        padding: 24px;
         margin: 24px 0;
-        box-shadow:
-            0 12px 36px var(--shadow-soft),
-            0 4px 12px rgba(212, 175, 55, 0.08);
+        box-shadow: 0 10px 28px rgba(93, 64, 55, 0.10);
         position: relative;
         overflow: hidden;
     }
 
     .section-card::before {
-        content: '';
+        content: "";
         position: absolute;
         top: 0;
-        left: 0;
         right: 0;
+        left: 0;
         height: 4px;
-        background: linear-gradient(90deg, var(--morocco-red), var(--gold), var(--morocco-green));
+        background: linear-gradient(90deg, #b11226, #d4af37, #006233);
     }
 
     .section-title {
-        color: var(--morocco-red);
-        font-size: clamp(22px, 4vw, 28px);
+        color: #b11226;
+        font-size: 26px;
         font-weight: 900;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
 
     .small-note {
-        color: var(--text-medium);
+        color: #5d4037;
         font-size: 16px;
-        line-height: 1.85;
-        font-weight: 400;
+        line-height: 1.8;
     }
 
     div[data-testid="stSelectbox"] label,
@@ -169,62 +158,30 @@ st.markdown(
     textarea,
     input,
     div[data-baseweb="select"] > div {
-        background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%) !important;
-        border-radius: 18px !important;
-        border-color: rgba(212, 175, 55, 0.35) !important;
-        color: var(--text-dark) !important;
+        background: #fffdf7 !important;
+        border-radius: 16px !important;
+        color: #2d1810 !important;
     }
 
     .stButton > button {
-        background: linear-gradient(135deg, var(--morocco-red) 0%, var(--morocco-green) 100%);
-        color: white;
+        background: linear-gradient(135deg, #b11226 0%, #006233 100%);
+        color: white !important;
         border: none;
-        border-radius: 20px;
-        padding: 0.85rem 1.5rem;
+        border-radius: 18px;
+        padding: 0.8rem 1.4rem;
         font-size: 18px;
         font-weight: 800;
-        box-shadow:
-            0 10px 28px var(--shadow-strong),
-            inset 0 2px 0 rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 25px rgba(177, 18, 38, 0.25);
         width: 100%;
     }
 
     .stButton > button:hover {
-        color: #fff7d6;
+        color: #fff7d6 !important;
         transform: translateY(-2px);
     }
 
-    div[data-testid="stAlert"] {
-        border-radius: 18px;
-        border: 1px solid rgba(212, 175, 55, 0.25);
-    }
-
-    div[data-testid="stExpander"] {
-        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
-        border: 2px solid rgba(212, 175, 55, 0.25);
-        border-radius: 18px;
-        overflow: hidden;
-        margin: 12px 0;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
-    }
-
-    div[role="radiogroup"] {
-        gap: 12px;
-    }
-
-    div[role="radiogroup"] label {
-        background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
-        border: 2px solid rgba(212, 175, 55, 0.3);
-        border-radius: 16px;
-        padding: 10px 14px;
-        margin-bottom: 10px;
-    }
-
-    /* مهم: إصلاح ظهور كتابة Radio و Quiz */
     div[role="radiogroup"] label,
     div[role="radiogroup"] label *,
-    div[role="radiogroup"] span,
-    div[role="radiogroup"] p,
     div[data-testid="stRadio"] label,
     div[data-testid="stRadio"] label *,
     div[data-testid="stRadio"] span,
@@ -235,175 +192,24 @@ st.markdown(
         font-weight: 700 !important;
     }
 
-    .answer-card {
-        background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%);
-        border-radius: 28px;
-        padding: 26px;
-        margin: 24px 0;
+    div[role="radiogroup"] label {
+        background: rgba(255, 255, 255, 0.90);
         border: 2px solid rgba(212, 175, 55, 0.35);
-        border-right: 7px solid var(--morocco-green);
-        border-left: 7px solid var(--morocco-red);
-        box-shadow:
-            0 14px 34px rgba(0, 0, 0, 0.08),
-            inset 0 2px 0 rgba(255, 255, 255, 0.9);
+        border-radius: 14px;
+        padding: 10px 14px;
+        margin-bottom: 10px;
     }
 
-    .answer-card-title {
-        color: var(--morocco-green);
-        font-size: 26px;
-        font-weight: 900;
-        margin-bottom: 18px;
+    div[data-testid="stAlert"] {
+        border-radius: 18px;
     }
 
-    .answer-card-content {
-        background: rgba(255, 248, 239, 0.75);
-        border-radius: 20px;
-        padding: 22px;
-        color: var(--text-dark);
-        font-size: 18px;
-        line-height: 2;
-        border: 1px solid rgba(212, 175, 55, 0.25);
-        white-space: pre-wrap;
-    }
-
-    .quiz-question-card {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 253, 247, 0.95));
-        border: 2px solid rgba(212, 175, 55, 0.35);
-        border-radius: 26px;
-        padding: 24px;
-        margin: 26px 0 14px 0;
-        box-shadow: 0 10px 28px rgba(93, 64, 55, 0.10);
-        position: relative;
+    div[data-testid="stExpander"] {
+        background: rgba(255, 255, 255, 0.92);
+        border: 2px solid rgba(212, 175, 55, 0.25);
+        border-radius: 18px;
         overflow: hidden;
-    }
-
-    .quiz-question-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 8px;
-        height: 100%;
-        background: linear-gradient(180deg, var(--morocco-red), var(--morocco-green));
-    }
-
-    .quiz-number {
-        display: inline-block;
-        background: linear-gradient(135deg, var(--morocco-red), var(--morocco-green));
-        color: white;
-        padding: 8px 18px;
-        border-radius: 999px;
-        font-weight: 900;
-        font-size: 17px;
-        margin-bottom: 14px;
-        box-shadow: 0 8px 20px rgba(177, 18, 38, 0.22);
-    }
-
-    .quiz-question-text {
-        color: var(--text-dark);
-        font-size: 22px;
-        font-weight: 800;
-        line-height: 1.8;
-        margin-top: 10px;
-    }
-
-    .quiz-result-card {
-        background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%);
-        border-radius: 26px;
-        padding: 24px;
-        margin: 24px 0;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-        border: 2px solid rgba(212, 175, 55, 0.35);
-    }
-
-    .quiz-result-card.correct {
-        border-right: 8px solid #0f8a4c;
-    }
-
-    .quiz-result-card.wrong {
-        border-right: 8px solid #b11226;
-    }
-
-    .quiz-status {
-        font-size: 22px;
-        font-weight: 900;
-        margin-bottom: 16px;
-    }
-
-    .quiz-status.correct-text {
-        color: #0f8a4c !important;
-    }
-
-    .quiz-status.wrong-text {
-        color: #b11226 !important;
-    }
-
-    .answer-line {
-        background: rgba(255, 248, 239, 0.75);
-        padding: 14px 18px;
-        border-radius: 16px;
         margin: 12px 0;
-        border: 1px solid rgba(212, 175, 55, 0.25);
-        font-size: 17px;
-        line-height: 1.8;
-        color: #2d1810 !important;
-    }
-
-    .answer-line,
-    .answer-line *,
-    .quiz-result-card,
-    .quiz-result-card *,
-    .answer-card-content,
-    .answer-card-content * {
-        color: #2d1810 !important;
-        opacity: 1 !important;
-        visibility: visible !important;
-    }
-
-    .answer-line strong {
-        color: #b11226 !important;
-    }
-
-    .correct-answer-box {
-        background: rgba(0, 98, 51, 0.08);
-        border: 1px solid rgba(0, 98, 51, 0.25);
-    }
-
-    .correct-answer-box strong {
-        color: #006233 !important;
-    }
-
-    .explanation-box {
-        background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(255, 233, 166, 0.18));
-        border: 1px solid rgba(212, 175, 55, 0.45);
-    }
-
-    .explanation-box strong {
-        color: #8b1e2d !important;
-    }
-
-    .score-card {
-        background: linear-gradient(135deg, var(--morocco-red), var(--morocco-green));
-        color: white;
-        padding: 28px;
-        border-radius: 28px;
-        margin: 28px 0;
-        text-align: center;
-        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
-        border: 3px solid var(--gold);
-    }
-
-    .score-card h2 {
-        margin: 0;
-        font-size: 34px;
-        font-weight: 900;
-        color: white !important;
-    }
-
-    .score-card p {
-        margin-top: 12px;
-        font-size: 18px;
-        color: #fff7df !important;
     }
 
     .footer {
@@ -412,9 +218,9 @@ st.markdown(
         font-size: 14px;
         margin-top: 40px;
         padding: 24px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 248, 239, 0.8) 100%);
+        background: rgba(255, 255, 255, 0.65);
         border-radius: 20px;
-        border: 1px solid rgba(212, 175, 55, 0.2);
+        border: 1px solid rgba(212, 175, 55, 0.25);
         line-height: 1.9;
     }
 
@@ -430,31 +236,13 @@ st.markdown(
         }
 
         .moroccan-hero {
-            padding: 2rem 1.5rem;
+            padding: 2rem 1.3rem;
             border-radius: 24px;
         }
 
         .section-card {
             padding: 20px;
             border-radius: 22px;
-        }
-
-        .answer-card {
-            padding: 18px;
-            border-radius: 22px;
-        }
-
-        .answer-card-content {
-            font-size: 16px;
-            padding: 16px;
-        }
-
-        .quiz-question-text {
-            font-size: 18px;
-        }
-
-        .score-card h2 {
-            font-size: 26px;
         }
     }
     </style>
@@ -569,7 +357,7 @@ def generate_with_retry(prompt, max_retries=3):
 
 
 # =========================
-# أدوات الحساب
+# Supabase: الحسابات والسجل
 # =========================
 def normalize_name(name):
     return " ".join(name.strip().lower().split())
@@ -675,7 +463,7 @@ if "quiz_version" not in st.session_state:
 
 
 # =========================
-# تسجيل الدخول
+# صفحة تسجيل الدخول
 # =========================
 if st.session_state.student is None:
     st.markdown(
@@ -761,7 +549,7 @@ if st.button("تسجيل الخروج"):
 
 
 # =========================
-# إعدادات
+# إعدادات المساعدة
 # =========================
 st.markdown(
     """
@@ -959,79 +747,38 @@ def extract_json(text):
 
 
 # =========================
-# دوال العرض
+# دوال عرض آمنة بدون HTML للنتائج
 # =========================
-def safe_html(text):
-    return html.escape(str(text)).replace("\n", "<br>")
-
-
 def render_answer_card(title, content):
-    content_safe = safe_html(content)
-
-    html_card = f"""
-    <div class="answer-card">
-        <div class="answer-card-title">{title}</div>
-        <div class="answer-card-content">
-            {content_safe}
-        </div>
-    </div>
-    """
-
-    st.markdown(html_card, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown(f"## {title}")
+        st.markdown(content)
 
 
 def render_quiz_question_card(number, question):
-    question_safe = safe_html(question)
-
-    html_card = f"""
-    <div class="quiz-question-card">
-        <div class="quiz-number">السؤال {number}</div>
-        <div class="quiz-question-text">{question_safe}</div>
-    </div>
-    """
-
-    st.markdown(html_card, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown(f"### السؤال {number}")
+        st.markdown(f"**{question}**")
 
 
 def render_quiz_result_card(number, question, user_answer, correct_answer, explanation, is_correct):
-    card_class = "correct" if is_correct else "wrong"
-    status_class = "correct-text" if is_correct else "wrong-text"
-    status_text = "إجابة صحيحة ✅" if is_correct else "إجابة خاطئة ❌"
+    with st.container(border=True):
+        if is_correct:
+            st.success(f"السؤال {number}: إجابة صحيحة ✅")
+        else:
+            st.error(f"السؤال {number}: إجابة خاطئة ❌")
 
-    question_safe = safe_html(question)
-    user_answer_safe = safe_html(user_answer)
-    correct_answer_safe = safe_html(correct_answer)
-    explanation_safe = safe_html(explanation)
+        st.markdown("### السؤال")
+        st.write(question)
 
-    html_card = f"""
-    <div class="quiz-result-card {card_class}">
-        <div class="quiz-status {status_class}">
-            السؤال {number}: {status_text}
-        </div>
+        st.markdown("### جوابك")
+        st.write(user_answer)
 
-        <div class="answer-line">
-            <strong>السؤال:</strong><br>
-            {question_safe}
-        </div>
+        st.markdown("### الجواب الصحيح")
+        st.success(correct_answer)
 
-        <div class="answer-line">
-            <strong>جوابك:</strong><br>
-            {user_answer_safe}
-        </div>
-
-        <div class="answer-line correct-answer-box">
-            <strong>الجواب الصحيح:</strong><br>
-            {correct_answer_safe}
-        </div>
-
-        <div class="answer-line explanation-box">
-            <strong>الشرح:</strong><br>
-            {explanation_safe}
-        </div>
-    </div>
-    """
-
-    st.markdown(html_card, unsafe_allow_html=True)
+        st.markdown("### الشرح")
+        st.info(explanation)
 
 
 def render_score_card(score, total):
@@ -1044,14 +791,9 @@ def render_score_card(score, total):
     else:
         message = "خاصك تراجع الدرس مرة أخرى وتحاول من جديد."
 
-    html_card = f"""
-    <div class="score-card">
-        <h2>🏆 درجتك: {score} / {total}</h2>
-        <p>{message}</p>
-    </div>
-    """
-
-    st.markdown(html_card, unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown(f"# 🏆 درجتك: {score} / {total}")
+        st.markdown(f"### {message}")
 
 
 # =========================
