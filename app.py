@@ -856,6 +856,46 @@ def get_student_classes(student_id):
 
 
 # =========================
+# الخروج من القسم / حذف القسم
+# =========================
+def leave_class(student_id, class_id):
+    try:
+        supabase.table("class_students") \
+            .delete() \
+            .eq("student_id", student_id) \
+            .eq("class_id", class_id) \
+            .execute()
+
+        return True, "تم الخروج من القسم بنجاح."
+    except Exception as e:
+        return False, str(e)
+
+
+def delete_class_for_teacher(teacher_id, class_id):
+    try:
+        existing = (
+            supabase.table("classes")
+            .select("*")
+            .eq("id", class_id)
+            .eq("teacher_id", teacher_id)
+            .execute()
+        )
+
+        if not existing.data:
+            return False, "لا يمكنك حذف هذا القسم أو أنه غير موجود."
+
+        supabase.table("classes") \
+            .delete() \
+            .eq("id", class_id) \
+            .eq("teacher_id", teacher_id) \
+            .execute()
+
+        return True, "تم حذف القسم بنجاح."
+    except Exception as e:
+        return False, str(e)
+
+
+# =========================
 # دردشة الأقسام
 # =========================
 def send_class_message(class_id, sender_type, sender_id, sender_name, message):
@@ -1654,6 +1694,7 @@ if account_type == "teacher":
                             cls.get("subject", "غير محددة")
                         )
                     )
+
                     st.markdown("**كود القسم:**")
                     st.markdown(
                         f"""
@@ -1661,6 +1702,37 @@ if account_type == "teacher":
                         """,
                         unsafe_allow_html=True
                     )
+
+                    st.markdown("---")
+                    st.markdown("### 🗑️ حذف القسم")
+
+                    st.warning(
+                        "إذا حذفت هذا القسم، سيتم حذف ارتباط التلاميذ به، ورسائل الدردشة، والاختبارات المرتبطة به."
+                    )
+
+                    confirm_delete_class = st.checkbox(
+                        f"أؤكد أنني أريد حذف القسم: {cls['class_name']}",
+                        key=f"confirm_delete_class_{cls['id']}"
+                    )
+
+                    if st.button(
+                        "🗑️ حذف هذا القسم",
+                        key=f"delete_class_{cls['id']}"
+                    ):
+                        if not confirm_delete_class:
+                            st.warning("فعّل خانة التأكيد أولًا قبل حذف القسم.")
+                        else:
+                            ok, msg = delete_class_for_teacher(
+                                account["id"],
+                                cls["id"]
+                            )
+
+                            if ok:
+                                st.success(msg)
+                                time.sleep(0.5)
+                                st.rerun()
+                            else:
+                                st.error(msg)
 
     elif teacher_page == "إنشاء Quiz للقسم":
         st.markdown("## 🧠 إنشاء Quiz وإرساله للقسم")
@@ -2063,6 +2135,7 @@ elif student_page == "الانضمام إلى قسم":
                 st.code(str(e))
 
     st.markdown("## أقسامي")
+
     classes = get_student_classes(account["id"])
 
     if not classes:
@@ -2071,6 +2144,7 @@ elif student_page == "الانضمام إلى قسم":
         for cls in classes:
             with st.container(border=True):
                 st.markdown(f"### {cls['class_name']}")
+
                 st.caption(
                     format_school_context(
                         cls.get("school_cycle", "غير محدد"),
@@ -2078,7 +2152,35 @@ elif student_page == "الانضمام إلى قسم":
                         cls.get("subject", "غير محددة")
                     )
                 )
+
                 st.caption(f"كود القسم: {cls['class_code']}")
+
+                st.markdown("---")
+                st.markdown("### 🚪 الخروج من القسم")
+
+                confirm_leave_class = st.checkbox(
+                    f"أؤكد أنني أريد الخروج من القسم: {cls['class_name']}",
+                    key=f"confirm_leave_class_{cls['id']}"
+                )
+
+                if st.button(
+                    "🚪 الخروج من هذا القسم",
+                    key=f"leave_class_{cls['id']}"
+                ):
+                    if not confirm_leave_class:
+                        st.warning("فعّل خانة التأكيد أولًا قبل الخروج من القسم.")
+                    else:
+                        ok, msg = leave_class(
+                            account["id"],
+                            cls["id"]
+                        )
+
+                        if ok:
+                            st.success(msg)
+                            time.sleep(0.5)
+                            st.rerun()
+                        else:
+                            st.error(msg)
 
 
 # =========================
