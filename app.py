@@ -7,6 +7,7 @@ import random
 import string
 import streamlit as st
 from google import genai
+from google.genai import types
 from supabase import create_client
 
 
@@ -152,7 +153,8 @@ st.markdown(
     div[data-testid="stTextArea"] label,
     div[data-testid="stTextInput"] label,
     div[data-testid="stRadio"] label,
-    div[data-testid="stCheckbox"] label {
+    div[data-testid="stCheckbox"] label,
+    div[data-testid="stFileUploader"] label {
         color: #5a1f1f !important;
         font-weight: 800 !important;
         font-size: 17px !important;
@@ -311,7 +313,7 @@ st.markdown(
         <h1>📚 منصة الدعم الذكي</h1>
         <p>
             منصة دعم مدرسية موجهة لتلاميذ الابتدائي والإعدادي في المغرب:
-            شرح الدروس، تمارين، Quiz، أقسام الأستاذ، وتتبع النتائج.
+            شرح الدروس، تمارين، Quiz، سؤال بصورة، أقسام الأستاذ، وتتبع النتائج.
         </p>
     </div>
     """,
@@ -446,6 +448,68 @@ def generate_with_retry(prompt, max_retries=3):
                 response = client.models.generate_content(
                     model=model_name,
                     contents=prompt
+                )
+
+                if response.text:
+                    return response.text
+
+                raise Exception("Gemini returned an empty response.")
+
+            except Exception as e:
+                last_error = e
+                error_text = str(e).lower()
+
+                if (
+                    "503" in error_text
+                    or "unavailable" in error_text
+                    or "overloaded" in error_text
+                    or "model is overloaded" in error_text
+                ):
+                    time.sleep(2 + attempt * 2)
+                    continue
+
+                if (
+                    "429" in error_text
+                    or "resource_exhausted" in error_text
+                    or "rate limit" in error_text
+                    or "quota" in error_text
+                ):
+                    time.sleep(5 + attempt * 5)
+                    continue
+
+                raise e
+
+    raise last_error
+
+
+# =========================
+# Gemini مع صورة + إعادة المحاولة
+# =========================
+def generate_with_retry_image(prompt, uploaded_image, max_retries=3):
+    models = [
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite"
+    ]
+
+    image_bytes = uploaded_image.getvalue()
+    mime_type = uploaded_image.type or "image/jpeg"
+
+    image_part = types.Part.from_bytes(
+        data=image_bytes,
+        mime_type=mime_type
+    )
+
+    last_error = None
+
+    for model_name in models:
+        for attempt in range(max_retries):
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=[
+                        image_part,
+                        prompt
+                    ]
                 )
 
                 if response.text:
@@ -659,6 +723,7 @@ def save_interaction(student_id, task_type, language, school_cycle, school_level
         "school_cycle": school_cycle,
         "school_level": school_level,
         "subject": subject,
+        "level": school_level,
         "question": question,
         "answer": answer
     }).execute()
@@ -878,6 +943,7 @@ def create_teacher_quiz(
             "school_cycle": school_cycle,
             "school_level": school_level,
             "subject": subject,
+            "level": school_level,
             "questions_json": quiz_data
         })
         .execute()
@@ -1111,6 +1177,40 @@ def build_prompt(task, lang, school_cycle, school_level, subject, text):
 وبطريقة مناسبة لتلميذ في {school_level}، مادة {subject}، ضمن الدعم المدرسي بالمغرب:
 
 {text}
+"""
+
+
+def build_image_question_prompt(lang, school_cycle, school_level, subject, student_question):
+    return f"""
+أنت مساعد دعم مدرسي ذكي.
+
+السياق الدراسي:
+- السلك الدراسي: {school_cycle}
+- المستوى الدراسي: {school_level}
+- المادة: {subject}
+- البلد: المغرب
+- الهدف: الدعم المدرسي
+
+الصورة المرفقة قد تحتوي على تمرين، درس، نص، سؤال، جدول، مسألة، أو صفحة من كتاب/دفتر.
+
+مطلوب منك:
+1. اقرأ محتوى الصورة بعناية.
+2. إذا كانت الصورة غير واضحة، أخبر التلميذ بذلك بلطف واطلب صورة أوضح.
+3. أجب عن سؤال التلميذ باللغة {lang}.
+4. اجعل الشرح مناسبًا لتلميذ في {school_level}، مادة {subject}.
+5. لا تعطِ الجواب فقط، بل اشرح الطريقة خطوة بخطوة.
+6. إذا كان تمرينًا، اشرح الحل بطريقة تعليمية.
+7. إذا كان نصًا، ساعد في الفهم أو التلخيص أو استخراج الأفكار حسب سؤال التلميذ.
+
+سؤال التلميذ:
+{student_question}
+
+نظم الجواب بهذا الشكل:
+1. ماذا يوجد في الصورة؟
+2. فهم السؤال أو التمرين
+3. الشرح خطوة بخطوة
+4. الجواب النهائي
+5. نصيحة صغيرة للمراجعة
 """
 
 
@@ -1715,7 +1815,7 @@ st.markdown(
     <div class="section-card">
         <div class="section-title">⚙️ لوحة التلميذ</div>
         <div class="small-note">
-            استعمل المساعد الدراسي، حل Quiz، انضم إلى قسم دعم، أو شاهد Quizzes من الأستاذ.
+            استعمل المساعد الدراسي، ارفع صورة سؤال، حل Quiz، انضم إلى قسم دعم، أو شاهد Quizzes من الأستاذ.
         </div>
     </div>
     """,
@@ -1726,6 +1826,7 @@ student_page = st.selectbox(
     "اختر الخدمة:",
     [
         "المساعد الدراسي",
+        "سؤال بصورة",
         "Quiz Mode",
         "الانضمام إلى قسم",
         "Quizzes من الأستاذ",
@@ -1956,6 +2057,82 @@ elif student_page == "Quizzes من الأستاذ":
 
 
 # =========================
+# سؤال بصورة
+# =========================
+elif student_page == "سؤال بصورة":
+    st.markdown(
+        """
+        <div class="section-card">
+            <div class="section-title">📷 سؤال بصورة</div>
+            <div class="small-note">
+                ارفع صورة لتمرين، درس، نص، مسألة، أو صفحة من كتاب/دفتر،
+                واكتب سؤالك عنها. سيحاول المساعد قراءة الصورة وشرحها لك.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    uploaded_image = st.file_uploader(
+        "ارفع صورة السؤال أو التمرين:",
+        type=["png", "jpg", "jpeg", "webp"]
+    )
+
+    if uploaded_image is not None:
+        file_size_mb = uploaded_image.size / (1024 * 1024)
+
+        if file_size_mb > 8:
+            st.warning("الصورة كبيرة جدًا. حاول رفع صورة أقل من 8MB.")
+        else:
+            st.image(uploaded_image, caption="الصورة المرفوعة", use_container_width=True)
+
+            image_question = st.text_area(
+                "اكتب سؤالك حول الصورة:",
+                height=120,
+                placeholder="مثال: اشرح لي هذا التمرين خطوة بخطوة، أو ما هو الجواب الصحيح؟"
+            )
+
+            if st.button("🔍 حلل الصورة وأجب"):
+                if not image_question.strip():
+                    st.warning("اكتب سؤالك حول الصورة أولًا.")
+                else:
+                    with st.spinner("جاري قراءة الصورة وتحليل السؤال..."):
+                        try:
+                            prompt = build_image_question_prompt(
+                                language,
+                                school_cycle,
+                                school_level,
+                                subject,
+                                image_question
+                            )
+
+                            answer_text = generate_with_retry_image(
+                                prompt,
+                                uploaded_image
+                            )
+
+                            render_answer_card("📷 الجواب عن الصورة", answer_text)
+
+                            save_interaction(
+                                account["id"],
+                                "سؤال بصورة",
+                                language,
+                                school_cycle,
+                                school_level,
+                                subject,
+                                f"سؤال حول صورة: {image_question}",
+                                answer_text
+                            )
+
+                            st.success("تم حفظ السؤال والجواب في سجلك.")
+
+                        except Exception as e:
+                            st.error("حدث خطأ أثناء تحليل الصورة. جرّب صورة أوضح أو أعد المحاولة.")
+                            st.write("تفاصيل الخطأ:")
+                            st.code(str(e))
+
+
+# =========================
 # Quiz Mode الشخصي
 # =========================
 elif student_page == "Quiz Mode":
@@ -2183,7 +2360,7 @@ st.markdown(
     <div class="footer">
         <div class="footer-icons">🇲🇦 📚 🤖 ✨</div>
         <strong>منصة الدعم الذكي</strong><br>
-        دعم مدرسي للابتدائي والإعدادي: أقسام، Quizzes، نتائج، ومساعد دراسي ذكي<br>
+        دعم مدرسي للابتدائي والإعدادي: سؤال بصورة، أقسام، Quizzes، نتائج، ومساعد دراسي ذكي<br>
         تم إنشاؤه باستعمال Streamlit و Google Gemini API و Supabase<br>
         <small style="opacity: 0.7;">© 2026 - جميع الحقوق محفوظة</small>
     </div>
