@@ -19,7 +19,7 @@ st.set_page_config(
 
 
 # =========================
-# تصميم مغربي محسن + إصلاح ظهور الكتابة
+# CSS التصميم
 # =========================
 st.markdown(
     """
@@ -54,26 +54,10 @@ st.markdown(
         color: var(--text-dark);
     }
 
-    .stApp::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image:
-            radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 80% 80%, rgba(0, 98, 51, 0.06) 0%, transparent 50%);
-        pointer-events: none;
-        z-index: 0;
-    }
-
     .block-container {
         max-width: 960px;
         padding-top: 2rem;
         padding-bottom: 2rem;
-        position: relative;
-        z-index: 1;
     }
 
     .moroccan-hero {
@@ -88,12 +72,6 @@ st.markdown(
         margin-bottom: 2.5rem;
         position: relative;
         overflow: hidden;
-        animation: heroFloat 6s ease-in-out infinite;
-    }
-
-    @keyframes heroFloat {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-8px); }
     }
 
     .moroccan-hero::before {
@@ -104,28 +82,6 @@ st.markdown(
         font-size: 24px;
         color: rgba(255, 215, 0, 0.5);
         letter-spacing: 10px;
-        animation: sparkle 3s ease-in-out infinite;
-    }
-
-    @keyframes sparkle {
-        0%, 100% { opacity: 0.5; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.08); }
-    }
-
-    .moroccan-hero::after {
-        content: "";
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255, 215, 0, 0.10) 0%, transparent 60%);
-        animation: rotateGlow 20s linear infinite;
-    }
-
-    @keyframes rotateGlow {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
     }
 
     .moroccan-badge {
@@ -133,7 +89,6 @@ st.markdown(
         align-items: center;
         gap: 8px;
         background: rgba(255, 255, 255, 0.18);
-        backdrop-filter: blur(10px);
         color: var(--gold-light);
         padding: 10px 20px;
         border-radius: 999px;
@@ -143,12 +98,6 @@ st.markdown(
         border: 2px solid rgba(255, 255, 255, 0.3);
         position: relative;
         z-index: 1;
-        animation: badgePulse 2s ease-in-out infinite;
-    }
-
-    @keyframes badgePulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
-        50% { box-shadow: 0 0 20px 5px rgba(212, 175, 55, 0.2); }
     }
 
     .moroccan-hero h1 {
@@ -158,7 +107,6 @@ st.markdown(
         margin-bottom: 16px;
         position: relative;
         z-index: 1;
-        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         color: #ffffff;
     }
 
@@ -173,8 +121,7 @@ st.markdown(
     }
 
     .section-card {
-        background: rgba(255, 255, 255, 0.88);
-        backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.90);
         border: 2px solid rgba(212, 175, 55, 0.35);
         border-radius: 28px;
         padding: 28px;
@@ -182,7 +129,6 @@ st.markdown(
         box-shadow:
             0 12px 36px var(--shadow-soft),
             0 4px 12px rgba(212, 175, 55, 0.08);
-        transition: all 0.35s ease;
         position: relative;
         overflow: hidden;
     }
@@ -195,20 +141,6 @@ st.markdown(
         right: 0;
         height: 4px;
         background: linear-gradient(90deg, var(--morocco-red), var(--gold), var(--morocco-green));
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .section-card:hover {
-        transform: translateY(-5px);
-        box-shadow:
-            0 20px 48px var(--shadow-medium),
-            0 8px 24px rgba(212, 175, 55, 0.15);
-        border-color: rgba(212, 175, 55, 0.55);
-    }
-
-    .section-card:hover::before {
-        opacity: 1;
     }
 
     .section-title {
@@ -243,14 +175,6 @@ st.markdown(
         color: var(--text-dark) !important;
     }
 
-    textarea:focus,
-    input:focus {
-        border-color: var(--morocco-green) !important;
-        box-shadow:
-            0 0 0 4px rgba(0, 98, 51, 0.12),
-            0 8px 24px rgba(0, 98, 51, 0.15) !important;
-    }
-
     .stButton > button {
         background: linear-gradient(135deg, var(--morocco-red) 0%, var(--morocco-green) 100%);
         color: white;
@@ -262,20 +186,12 @@ st.markdown(
         box-shadow:
             0 10px 28px var(--shadow-strong),
             inset 0 2px 0 rgba(255, 255, 255, 0.2);
-        transition: all 0.35s ease;
         width: 100%;
     }
 
     .stButton > button:hover {
-        transform: translateY(-4px) scale(1.01);
-        box-shadow:
-            0 16px 36px rgba(177, 18, 38, 0.35),
-            inset 0 2px 0 rgba(255, 255, 255, 0.3);
         color: #fff7d6;
-    }
-
-    .stButton > button:active {
-        transform: translateY(-2px) scale(0.98);
+        transform: translateY(-2px);
     }
 
     div[data-testid="stAlert"] {
@@ -292,11 +208,6 @@ st.markdown(
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
     }
 
-    div[data-testid="stExpander"]:hover {
-        border-color: rgba(212, 175, 55, 0.45);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    }
-
     div[role="radiogroup"] {
         gap: 12px;
     }
@@ -306,16 +217,10 @@ st.markdown(
         border: 2px solid rgba(212, 175, 55, 0.3);
         border-radius: 16px;
         padding: 10px 14px;
-        transition: all 0.3s ease;
         margin-bottom: 10px;
     }
 
-    div[role="radiogroup"] label:hover {
-        transform: translateY(-2px);
-        border-color: var(--gold);
-    }
-
-    /* إصلاح ظهور كتابة Radio و Quiz */
+    /* مهم: إصلاح ظهور كتابة Radio و Quiz */
     div[role="radiogroup"] label,
     div[role="radiogroup"] label *,
     div[role="radiogroup"] span,
@@ -341,7 +246,6 @@ st.markdown(
         box-shadow:
             0 14px 34px rgba(0, 0, 0, 0.08),
             inset 0 2px 0 rgba(255, 255, 255, 0.9);
-        animation: slideUp 0.45s ease-out;
     }
 
     .answer-card-title {
@@ -359,6 +263,7 @@ st.markdown(
         font-size: 18px;
         line-height: 2;
         border: 1px solid rgba(212, 175, 55, 0.25);
+        white-space: pre-wrap;
     }
 
     .quiz-question-card {
@@ -441,6 +346,7 @@ st.markdown(
         border: 1px solid rgba(212, 175, 55, 0.25);
         font-size: 17px;
         line-height: 1.8;
+        color: #2d1810 !important;
     }
 
     .answer-line,
@@ -500,32 +406,6 @@ st.markdown(
         color: #fff7df !important;
     }
 
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    hr {
-        border: none;
-        height: 3px;
-        background: linear-gradient(
-            90deg,
-            transparent 0%,
-            var(--gold) 20%,
-            var(--morocco-red) 50%,
-            var(--morocco-green) 80%,
-            transparent 100%
-        );
-        margin: 36px 0;
-        border-radius: 2px;
-    }
-
     .footer {
         text-align: center;
         color: #7a5b2e;
@@ -535,7 +415,6 @@ st.markdown(
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 248, 239, 0.8) 100%);
         border-radius: 20px;
         border: 1px solid rgba(212, 175, 55, 0.2);
-        backdrop-filter: blur(10px);
         line-height: 1.9;
     }
 
@@ -543,25 +422,6 @@ st.markdown(
         font-size: 24px;
         margin-bottom: 10px;
         letter-spacing: 8px;
-    }
-
-    ::-webkit-scrollbar {
-        width: 10px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(180deg, var(--morocco-red), var(--morocco-green));
-        border-radius: 10px;
-    }
-
-    ::selection {
-        background: rgba(212, 175, 55, 0.3);
-        color: var(--text-dark);
     }
 
     @media (max-width: 768px) {
@@ -577,11 +437,6 @@ st.markdown(
         .section-card {
             padding: 20px;
             border-radius: 22px;
-        }
-
-        .stButton > button {
-            padding: 0.75rem 1.2rem;
-            font-size: 16px;
         }
 
         .answer-card {
@@ -663,7 +518,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 # =========================
-# توليد جواب Gemini مع إعادة المحاولة
+# Gemini مع إعادة المحاولة
 # =========================
 def generate_with_retry(prompt, max_retries=3):
     models = [
@@ -820,7 +675,7 @@ if "quiz_version" not in st.session_state:
 
 
 # =========================
-# تسجيل الدخول / إنشاء حساب
+# تسجيل الدخول
 # =========================
 if st.session_state.student is None:
     st.markdown(
@@ -885,10 +740,12 @@ student = st.session_state.student
 # =========================
 # ترحيب الطالب
 # =========================
+student_name_safe = html.escape(student["name"])
+
 st.markdown(
     f"""
     <div class="section-card">
-        <div class="section-title">مرحبا {html.escape(student["name"])} 👋</div>
+        <div class="section-title">مرحبا {student_name_safe} 👋</div>
         <div class="small-note">
             أنت الآن داخل حسابك. كل سؤال وجواب سيتم حفظه في سجلك الدراسي.
         </div>
@@ -904,7 +761,7 @@ if st.button("تسجيل الخروج"):
 
 
 # =========================
-# إعدادات المساعدة
+# إعدادات
 # =========================
 st.markdown(
     """
@@ -976,7 +833,7 @@ def build_prompt(task, lang, student_level, text):
 {text}
 """
 
-    elif task == "تلخيص نص":
+    if task == "تلخيص نص":
         return f"""
 أنت مساعد دراسي ذكي.
 
@@ -993,7 +850,7 @@ def build_prompt(task, lang, student_level, text):
 {text}
 """
 
-    elif task == "إنشاء أسئلة للمراجعة":
+    if task == "إنشاء أسئلة للمراجعة":
         return f"""
 أنت مساعد دراسي ذكي.
 
@@ -1011,7 +868,7 @@ def build_prompt(task, lang, student_level, text):
 {text}
 """
 
-    elif task == "تبسيط مفهوم":
+    if task == "تبسيط مفهوم":
         return f"""
 أنت مساعد دراسي ذكي.
 
@@ -1029,7 +886,7 @@ def build_prompt(task, lang, student_level, text):
 {text}
 """
 
-    elif task == "تصحيح جواب":
+    if task == "تصحيح جواب":
         return f"""
 أنت مساعد دراسي ذكي.
 
@@ -1046,8 +903,7 @@ def build_prompt(task, lang, student_level, text):
 {text}
 """
 
-    else:
-        return f"""
+    return f"""
 أجب عن السؤال التالي باللغة {lang}
 وبطريقة مناسبة لمستوى {student_level}:
 
@@ -1103,36 +959,38 @@ def extract_json(text):
 
 
 # =========================
-# دوال العرض الجمالي
+# دوال العرض
 # =========================
 def safe_html(text):
     return html.escape(str(text)).replace("\n", "<br>")
 
 
 def render_answer_card(title, content):
-    st.markdown(
-        f"""
-        <div class="answer-card">
-            <div class="answer-card-title">{title}</div>
-            <div class="answer-card-content">
-                {safe_html(content)}
-            </div>
+    content_safe = safe_html(content)
+
+    html_card = f"""
+    <div class="answer-card">
+        <div class="answer-card-title">{title}</div>
+        <div class="answer-card-content">
+            {content_safe}
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+    </div>
+    """
+
+    st.markdown(html_card, unsafe_allow_html=True)
 
 
 def render_quiz_question_card(number, question):
-    st.markdown(
-        f"""
-        <div class="quiz-question-card">
-            <div class="quiz-number">السؤال {number}</div>
-            <div class="quiz-question-text">{safe_html(question)}</div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    question_safe = safe_html(question)
+
+    html_card = f"""
+    <div class="quiz-question-card">
+        <div class="quiz-number">السؤال {number}</div>
+        <div class="quiz-question-text">{question_safe}</div>
+    </div>
+    """
+
+    st.markdown(html_card, unsafe_allow_html=True)
 
 
 def render_quiz_result_card(number, question, user_answer, correct_answer, explanation, is_correct):
@@ -1140,36 +998,40 @@ def render_quiz_result_card(number, question, user_answer, correct_answer, expla
     status_class = "correct-text" if is_correct else "wrong-text"
     status_text = "إجابة صحيحة ✅" if is_correct else "إجابة خاطئة ❌"
 
-    st.markdown(
-        f"""
-        <div class="quiz-result-card {card_class}">
-            <div class="quiz-status {status_class}">
-                السؤال {number}: {status_text}
-            </div>
+    question_safe = safe_html(question)
+    user_answer_safe = safe_html(user_answer)
+    correct_answer_safe = safe_html(correct_answer)
+    explanation_safe = safe_html(explanation)
 
-            <div class="answer-line">
-                <strong>السؤال:</strong><br>
-                {safe_html(question)}
-            </div>
-
-            <div class="answer-line">
-                <strong>جوابك:</strong><br>
-                {safe_html(user_answer)}
-            </div>
-
-            <div class="answer-line correct-answer-box">
-                <strong>الجواب الصحيح:</strong><br>
-                {safe_html(correct_answer)}
-            </div>
-
-            <div class="answer-line explanation-box">
-                <strong>الشرح:</strong><br>
-                {safe_html(explanation)}
-            </div>
+    html_card = f"""
+    <div class="quiz-result-card {card_class}">
+        <div class="quiz-status {status_class}">
+            السؤال {number}: {status_text}
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+
+        <div class="answer-line">
+            <strong>السؤال:</strong><br>
+            {question_safe}
+        </div>
+
+        <div class="answer-line">
+            <strong>جوابك:</strong><br>
+            {user_answer_safe}
+        </div>
+
+        <div class="answer-line correct-answer-box">
+            <strong>الجواب الصحيح:</strong><br>
+            {correct_answer_safe}
+        </div>
+
+        <div class="answer-line explanation-box">
+            <strong>الشرح:</strong><br>
+            {explanation_safe}
+        </div>
+    </div>
+    """
+
+    st.markdown(html_card, unsafe_allow_html=True)
 
 
 def render_score_card(score, total):
@@ -1182,15 +1044,14 @@ def render_score_card(score, total):
     else:
         message = "خاصك تراجع الدرس مرة أخرى وتحاول من جديد."
 
-    st.markdown(
-        f"""
-        <div class="score-card">
-            <h2>🏆 درجتك: {score} / {total}</h2>
-            <p>{message}</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    html_card = f"""
+    <div class="score-card">
+        <h2>🏆 درجتك: {score} / {total}</h2>
+        <p>{message}</p>
+    </div>
+    """
+
+    st.markdown(html_card, unsafe_allow_html=True)
 
 
 # =========================
@@ -1256,7 +1117,7 @@ elif task_type == "Quiz Mode":
         if quiz_topic.strip() == "":
             st.warning("اكتب موضوع الاختبار أولًا.")
         else:
-            with st.spinner("جاري إنشاء الاختبار... إذا كان هناك ضغط على الخادم سيحاول التطبيق تلقائيًا مرة أخرى."):
+            with st.spinner("جاري إنشاء الاختبار..."):
                 try:
                     prompt = build_quiz_prompt(
                         language,
@@ -1397,10 +1258,9 @@ else:
         if user_input.strip() == "":
             st.warning("اكتب شيئًا أولًا.")
         else:
-            with st.spinner("جاري توليد الجواب... إذا كان هناك ضغط على الخادم سيحاول التطبيق تلقائيًا مرة أخرى."):
+            with st.spinner("جاري توليد الجواب..."):
                 try:
                     prompt = build_prompt(task_type, language, level, user_input)
-
                     answer_text = generate_with_retry(prompt)
 
                     render_answer_card("📌 الجواب", answer_text)
