@@ -19,7 +19,7 @@ st.set_page_config(
 
 
 # =========================
-# تصميم مغربي محسن
+# تصميم مغربي محسن + إصلاح ظهور الكتابة
 # =========================
 st.markdown(
     """
@@ -315,6 +315,21 @@ st.markdown(
         border-color: var(--gold);
     }
 
+    /* إصلاح ظهور كتابة Radio و Quiz */
+    div[role="radiogroup"] label,
+    div[role="radiogroup"] label *,
+    div[role="radiogroup"] span,
+    div[role="radiogroup"] p,
+    div[data-testid="stRadio"] label,
+    div[data-testid="stRadio"] label *,
+    div[data-testid="stRadio"] span,
+    div[data-testid="stRadio"] p {
+        color: #2d1810 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        font-weight: 700 !important;
+    }
+
     .answer-card {
         background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%);
         border-radius: 28px;
@@ -411,11 +426,11 @@ st.markdown(
     }
 
     .quiz-status.correct-text {
-        color: #0f8a4c;
+        color: #0f8a4c !important;
     }
 
     .quiz-status.wrong-text {
-        color: #b11226;
+        color: #b11226 !important;
     }
 
     .answer-line {
@@ -428,8 +443,19 @@ st.markdown(
         line-height: 1.8;
     }
 
+    .answer-line,
+    .answer-line *,
+    .quiz-result-card,
+    .quiz-result-card *,
+    .answer-card-content,
+    .answer-card-content * {
+        color: #2d1810 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
     .answer-line strong {
-        color: var(--morocco-red);
+        color: #b11226 !important;
     }
 
     .correct-answer-box {
@@ -437,9 +463,17 @@ st.markdown(
         border: 1px solid rgba(0, 98, 51, 0.25);
     }
 
+    .correct-answer-box strong {
+        color: #006233 !important;
+    }
+
     .explanation-box {
         background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(255, 233, 166, 0.18));
         border: 1px solid rgba(212, 175, 55, 0.45);
+    }
+
+    .explanation-box strong {
+        color: #8b1e2d !important;
     }
 
     .score-card {
@@ -457,13 +491,13 @@ st.markdown(
         margin: 0;
         font-size: 34px;
         font-weight: 900;
-        color: white;
+        color: white !important;
     }
 
     .score-card p {
         margin-top: 12px;
         font-size: 18px;
-        color: #fff7df;
+        color: #fff7df !important;
     }
 
     @keyframes slideUp {
