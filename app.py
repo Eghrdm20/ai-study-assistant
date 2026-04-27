@@ -2075,7 +2075,8 @@ elif student_page == "سؤال بصورة":
 
     uploaded_image = st.file_uploader(
         "ارفع صورة السؤال أو التمرين:",
-        type=["png", "jpg", "jpeg", "webp"]
+        type=["png", "jpg", "jpeg", "webp"],
+        key="image_question_uploader"
     )
 
     if uploaded_image is not None:
@@ -2084,52 +2085,63 @@ elif student_page == "سؤال بصورة":
         if file_size_mb > 8:
             st.warning("الصورة كبيرة جدًا. حاول رفع صورة أقل من 8MB.")
         else:
-            st.image(uploaded_image, caption="الصورة المرفوعة", use_container_width=True)
-
-            image_question = st.text_area(
-                "اكتب سؤالك حول الصورة:",
-                height=120,
-                placeholder="مثال: اشرح لي هذا التمرين خطوة بخطوة، أو ما هو الجواب الصحيح؟"
+            st.success("تم رفع الصورة بنجاح ✅")
+            st.image(
+                uploaded_image,
+                caption="الصورة المرفوعة",
+                use_container_width=True
             )
+    else:
+        st.info("اضغط على Upload واختر صورة من هاتفك.")
 
-            if st.button("🔍 حلل الصورة وأجب"):
-                if not image_question.strip():
-                    st.warning("اكتب سؤالك حول الصورة أولًا.")
-                else:
-                    with st.spinner("جاري قراءة الصورة وتحليل السؤال..."):
-                        try:
-                            prompt = build_image_question_prompt(
-                                language,
-                                school_cycle,
-                                school_level,
-                                subject,
-                                image_question
-                            )
+    image_question = st.text_area(
+        "اكتب سؤالك حول الصورة:",
+        height=120,
+        placeholder="مثال: اشرح لي هذا التمرين خطوة بخطوة، أو ما هو الجواب الصحيح؟"
+    )
 
-                            answer_text = generate_with_retry_image(
-                                prompt,
-                                uploaded_image
-                            )
+    if st.button("🔍 حلل الصورة وأجب"):
+        if uploaded_image is None:
+            st.warning("ارفع الصورة أولًا ثم اضغط على الزر.")
+        elif uploaded_image.size / (1024 * 1024) > 8:
+            st.warning("الصورة كبيرة جدًا. حاول رفع صورة أقل من 8MB.")
+        elif not image_question.strip():
+            st.warning("اكتب سؤالك حول الصورة أولًا.")
+        else:
+            with st.spinner("جاري قراءة الصورة وتحليل السؤال..."):
+                try:
+                    prompt = build_image_question_prompt(
+                        language,
+                        school_cycle,
+                        school_level,
+                        subject,
+                        image_question
+                    )
 
-                            render_answer_card("📷 الجواب عن الصورة", answer_text)
+                    answer_text = generate_with_retry_image(
+                        prompt,
+                        uploaded_image
+                    )
 
-                            save_interaction(
-                                account["id"],
-                                "سؤال بصورة",
-                                language,
-                                school_cycle,
-                                school_level,
-                                subject,
-                                f"سؤال حول صورة: {image_question}",
-                                answer_text
-                            )
+                    render_answer_card("📷 الجواب عن الصورة", answer_text)
 
-                            st.success("تم حفظ السؤال والجواب في سجلك.")
+                    save_interaction(
+                        account["id"],
+                        "سؤال بصورة",
+                        language,
+                        school_cycle,
+                        school_level,
+                        subject,
+                        f"سؤال حول صورة: {image_question}",
+                        answer_text
+                    )
 
-                        except Exception as e:
-                            st.error("حدث خطأ أثناء تحليل الصورة. جرّب صورة أوضح أو أعد المحاولة.")
-                            st.write("تفاصيل الخطأ:")
-                            st.code(str(e))
+                    st.success("تم حفظ السؤال والجواب في سجلك.")
+
+                except Exception as e:
+                    st.error("حدث خطأ أثناء تحليل الصورة. جرّب صورة أوضح أو أعد المحاولة.")
+                    st.write("تفاصيل الخطأ:")
+                    st.code(str(e))
 
 
 # =========================
