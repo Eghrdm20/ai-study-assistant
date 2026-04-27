@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import html
 import hashlib
 import streamlit as st
 from google import genai
@@ -277,39 +278,6 @@ st.markdown(
         transform: translateY(-2px) scale(0.98);
     }
 
-    .result-box {
-        background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%);
-        border-right: 6px solid var(--morocco-green);
-        border-left: 6px solid var(--morocco-red);
-        border-radius: 26px;
-        padding: 28px;
-        margin-top: 24px;
-        box-shadow:
-            0 12px 32px rgba(0, 0, 0, 0.09),
-            inset 0 2px 0 rgba(255, 255, 255, 0.8);
-        position: relative;
-        overflow: hidden;
-        animation: slideUp 0.5s ease-out;
-    }
-
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .result-box h2 {
-        color: var(--morocco-green);
-        font-size: 24px;
-        font-weight: 900;
-        margin-bottom: 16px;
-    }
-
     div[data-testid="stAlert"] {
         border-radius: 18px;
         border: 1px solid rgba(212, 175, 55, 0.25);
@@ -339,11 +307,174 @@ st.markdown(
         border-radius: 16px;
         padding: 10px 14px;
         transition: all 0.3s ease;
+        margin-bottom: 10px;
     }
 
     div[role="radiogroup"] label:hover {
         transform: translateY(-2px);
         border-color: var(--gold);
+    }
+
+    .answer-card {
+        background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%);
+        border-radius: 28px;
+        padding: 26px;
+        margin: 24px 0;
+        border: 2px solid rgba(212, 175, 55, 0.35);
+        border-right: 7px solid var(--morocco-green);
+        border-left: 7px solid var(--morocco-red);
+        box-shadow:
+            0 14px 34px rgba(0, 0, 0, 0.08),
+            inset 0 2px 0 rgba(255, 255, 255, 0.9);
+        animation: slideUp 0.45s ease-out;
+    }
+
+    .answer-card-title {
+        color: var(--morocco-green);
+        font-size: 26px;
+        font-weight: 900;
+        margin-bottom: 18px;
+    }
+
+    .answer-card-content {
+        background: rgba(255, 248, 239, 0.75);
+        border-radius: 20px;
+        padding: 22px;
+        color: var(--text-dark);
+        font-size: 18px;
+        line-height: 2;
+        border: 1px solid rgba(212, 175, 55, 0.25);
+    }
+
+    .quiz-question-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 253, 247, 0.95));
+        border: 2px solid rgba(212, 175, 55, 0.35);
+        border-radius: 26px;
+        padding: 24px;
+        margin: 26px 0 14px 0;
+        box-shadow: 0 10px 28px rgba(93, 64, 55, 0.10);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .quiz-question-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 8px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--morocco-red), var(--morocco-green));
+    }
+
+    .quiz-number {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--morocco-red), var(--morocco-green));
+        color: white;
+        padding: 8px 18px;
+        border-radius: 999px;
+        font-weight: 900;
+        font-size: 17px;
+        margin-bottom: 14px;
+        box-shadow: 0 8px 20px rgba(177, 18, 38, 0.22);
+    }
+
+    .quiz-question-text {
+        color: var(--text-dark);
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1.8;
+        margin-top: 10px;
+    }
+
+    .quiz-result-card {
+        background: linear-gradient(135deg, #ffffff 0%, #fffdf7 100%);
+        border-radius: 26px;
+        padding: 24px;
+        margin: 24px 0;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        border: 2px solid rgba(212, 175, 55, 0.35);
+    }
+
+    .quiz-result-card.correct {
+        border-right: 8px solid #0f8a4c;
+    }
+
+    .quiz-result-card.wrong {
+        border-right: 8px solid #b11226;
+    }
+
+    .quiz-status {
+        font-size: 22px;
+        font-weight: 900;
+        margin-bottom: 16px;
+    }
+
+    .quiz-status.correct-text {
+        color: #0f8a4c;
+    }
+
+    .quiz-status.wrong-text {
+        color: #b11226;
+    }
+
+    .answer-line {
+        background: rgba(255, 248, 239, 0.75);
+        padding: 14px 18px;
+        border-radius: 16px;
+        margin: 12px 0;
+        border: 1px solid rgba(212, 175, 55, 0.25);
+        font-size: 17px;
+        line-height: 1.8;
+    }
+
+    .answer-line strong {
+        color: var(--morocco-red);
+    }
+
+    .correct-answer-box {
+        background: rgba(0, 98, 51, 0.08);
+        border: 1px solid rgba(0, 98, 51, 0.25);
+    }
+
+    .explanation-box {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(255, 233, 166, 0.18));
+        border: 1px solid rgba(212, 175, 55, 0.45);
+    }
+
+    .score-card {
+        background: linear-gradient(135deg, var(--morocco-red), var(--morocco-green));
+        color: white;
+        padding: 28px;
+        border-radius: 28px;
+        margin: 28px 0;
+        text-align: center;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+        border: 3px solid var(--gold);
+    }
+
+    .score-card h2 {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 900;
+        color: white;
+    }
+
+    .score-card p {
+        margin-top: 12px;
+        font-size: 18px;
+        color: #fff7df;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     hr {
@@ -417,6 +548,24 @@ st.markdown(
         .stButton > button {
             padding: 0.75rem 1.2rem;
             font-size: 16px;
+        }
+
+        .answer-card {
+            padding: 18px;
+            border-radius: 22px;
+        }
+
+        .answer-card-content {
+            font-size: 16px;
+            padding: 16px;
+        }
+
+        .quiz-question-text {
+            font-size: 18px;
+        }
+
+        .score-card h2 {
+            font-size: 26px;
         }
     }
     </style>
@@ -705,7 +854,7 @@ student = st.session_state.student
 st.markdown(
     f"""
     <div class="section-card">
-        <div class="section-title">مرحبا {student["name"]} 👋</div>
+        <div class="section-title">مرحبا {html.escape(student["name"])} 👋</div>
         <div class="small-note">
             أنت الآن داخل حسابك. كل سؤال وجواب سيتم حفظه في سجلك الدراسي.
         </div>
@@ -887,7 +1036,8 @@ def build_quiz_prompt(lang, student_level, topic, count):
 
 أرجع النتيجة بصيغة JSON فقط بدون أي شرح خارج JSON.
 لا تكتب markdown.
-لا تكتب ```json.
+لا تكتب علامات backticks.
+لا تكتب وسوم json.
 
 استعمل هذا الشكل بالضبط:
 
@@ -916,6 +1066,97 @@ def extract_json(text):
         text = text[start:end + 1]
 
     return json.loads(text)
+
+
+# =========================
+# دوال العرض الجمالي
+# =========================
+def safe_html(text):
+    return html.escape(str(text)).replace("\n", "<br>")
+
+
+def render_answer_card(title, content):
+    st.markdown(
+        f"""
+        <div class="answer-card">
+            <div class="answer-card-title">{title}</div>
+            <div class="answer-card-content">
+                {safe_html(content)}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_quiz_question_card(number, question):
+    st.markdown(
+        f"""
+        <div class="quiz-question-card">
+            <div class="quiz-number">السؤال {number}</div>
+            <div class="quiz-question-text">{safe_html(question)}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_quiz_result_card(number, question, user_answer, correct_answer, explanation, is_correct):
+    card_class = "correct" if is_correct else "wrong"
+    status_class = "correct-text" if is_correct else "wrong-text"
+    status_text = "إجابة صحيحة ✅" if is_correct else "إجابة خاطئة ❌"
+
+    st.markdown(
+        f"""
+        <div class="quiz-result-card {card_class}">
+            <div class="quiz-status {status_class}">
+                السؤال {number}: {status_text}
+            </div>
+
+            <div class="answer-line">
+                <strong>السؤال:</strong><br>
+                {safe_html(question)}
+            </div>
+
+            <div class="answer-line">
+                <strong>جوابك:</strong><br>
+                {safe_html(user_answer)}
+            </div>
+
+            <div class="answer-line correct-answer-box">
+                <strong>الجواب الصحيح:</strong><br>
+                {safe_html(correct_answer)}
+            </div>
+
+            <div class="answer-line explanation-box">
+                <strong>الشرح:</strong><br>
+                {safe_html(explanation)}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_score_card(score, total):
+    percentage = int((score / total) * 100)
+
+    if percentage >= 80:
+        message = "ممتاز بزاف! مستواك رائع 🇲🇦"
+    elif percentage >= 50:
+        message = "مزيان، ولكن خاصك تراجع بعض النقاط."
+    else:
+        message = "خاصك تراجع الدرس مرة أخرى وتحاول من جديد."
+
+    st.markdown(
+        f"""
+        <div class="score-card">
+            <h2>🏆 درجتك: {score} / {total}</h2>
+            <p>{message}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 # =========================
@@ -1009,8 +1250,7 @@ elif task_type == "Quiz Mode":
         user_answers = []
 
         for i, q in enumerate(st.session_state.quiz_questions):
-            st.markdown(f"### السؤال {i + 1}")
-            st.write(q["question"])
+            render_quiz_question_card(i + 1, q["question"])
 
             answer = st.radio(
                 "اختر الجواب:",
@@ -1031,20 +1271,22 @@ elif task_type == "Quiz Mode":
                 correct_index = int(q["answer_index"])
                 selected_index = user_answers[i]
 
-                st.markdown(f"### السؤال {i + 1}")
+                is_correct = selected_index == correct_index
 
-                if selected_index == correct_index:
+                if is_correct:
                     score += 1
-                    st.success("إجابة صحيحة ✅")
                     status = "صحيح"
                 else:
-                    st.error("إجابة خاطئة ❌")
                     status = "خطأ"
 
-                st.write("**السؤال:**", q["question"])
-                st.write("**جوابك:**", q["choices"][selected_index])
-                st.write("**الجواب الصحيح:**", q["choices"][correct_index])
-                st.write("**الشرح:**", q["explanation"])
+                render_quiz_result_card(
+                    i + 1,
+                    q["question"],
+                    q["choices"][selected_index],
+                    q["choices"][correct_index],
+                    q["explanation"],
+                    is_correct
+                )
 
                 result_text += f"""
 السؤال {i + 1}: {q["question"]}
@@ -1058,16 +1300,10 @@ elif task_type == "Quiz Mode":
             total = len(st.session_state.quiz_questions)
             percentage = int((score / total) * 100)
 
-            st.markdown("---")
-            st.markdown(f"## درجتك: {score} / {total}")
+            render_score_card(score, total)
 
             if percentage >= 80:
                 st.balloons()
-                st.success("ممتاز بزاف! مستواك رائع 🇲🇦")
-            elif percentage >= 50:
-                st.info("مزيان، ولكن خاصك تراجع بعض النقاط.")
-            else:
-                st.warning("خاصك تراجع الدرس مرة أخرى وتحاول من جديد.")
 
             try:
                 save_interaction(
@@ -1133,16 +1369,7 @@ else:
 
                     answer_text = generate_with_retry(prompt)
 
-                    st.markdown(
-                        """
-                        <div class="result-box">
-                            <h2>📌 الجواب</h2>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-                    st.write(answer_text)
+                    render_answer_card("📌 الجواب", answer_text)
 
                     save_interaction(
                         student["id"],
