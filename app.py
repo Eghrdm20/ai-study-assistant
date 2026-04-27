@@ -3,6 +3,8 @@ import json
 import time
 import html
 import hashlib
+import random
+import string
 import streamlit as st
 from google import genai
 from supabase import create_client
@@ -232,6 +234,34 @@ st.markdown(
         margin-bottom: 8px;
     }
 
+    .teacher-card {
+        background: rgba(0, 98, 51, 0.08);
+        border: 2px solid rgba(0, 98, 51, 0.22);
+        border-radius: 22px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .teacher-title {
+        color: #006233;
+        font-size: 22px;
+        font-weight: 900;
+        margin-bottom: 8px;
+    }
+
+    .code-box {
+        background: #fffdf7;
+        border: 2px dashed #d4af37;
+        border-radius: 18px;
+        padding: 18px;
+        text-align: center;
+        font-size: 26px;
+        font-weight: 900;
+        color: #b11226;
+        letter-spacing: 3px;
+        margin: 15px 0;
+    }
+
     .footer {
         text-align: center;
         color: #7a5b2e;
@@ -280,8 +310,8 @@ st.markdown(
         <div class="moroccan-badge">🇲🇦 Moroccan Study Assistant</div>
         <h1>📚 AI Study Assistant</h1>
         <p>
-            مساعد دراسي ذكي بطابع مغربي يساعدك على شرح الدروس، تلخيص النصوص،
-            إنشاء أسئلة للمراجعة، وحفظ أسئلة كل تلميذ في حسابه الخاص.
+            منصة دراسية ذكية للتلاميذ والأساتذة: شرح الدروس، Quiz Mode،
+            أقسام دراسية، اختبارات من الأستاذ، ونتائج محفوظة لكل تلميذ.
         </p>
     </div>
     """,
@@ -318,9 +348,6 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     st.stop()
 
 
-# =========================
-# إنشاء العملاء
-# =========================
 client = genai.Client(api_key=GEMINI_API_KEY)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
@@ -377,10 +404,14 @@ def generate_with_retry(prompt, max_retries=3):
 
 
 # =========================
-# Supabase: الحسابات والسجل
+# أدوات عامة
 # =========================
 def normalize_name(name):
     return " ".join(name.strip().lower().split())
+
+
+def normalize_code(code):
+    return "".join(code.strip().upper().split())
 
 
 def hash_pin(pin):
@@ -388,6 +419,41 @@ def hash_pin(pin):
     return hashlib.sha256(raw).hexdigest()
 
 
+def extract_json(text):
+    text = text.strip()
+    text = text.replace("```json", "")
+    text = text.replace("```", "")
+
+    start = text.find("{")
+    end = text.rfind("}")
+
+    if start != -1 and end != -1:
+        text = text[start:end + 1]
+
+    return json.loads(text)
+
+
+def generate_class_code():
+    chars = string.ascii_uppercase + string.digits
+
+    for _ in range(20):
+        code = "".join(random.choices(chars, k=6))
+        existing = (
+            supabase.table("classes")
+            .select("id")
+            .eq("class_code", code)
+            .execute()
+        )
+
+        if not existing.data:
+            return code
+
+    return "".join(random.choices(chars, k=8))
+
+
+# =========================
+# حسابات التلاميذ
+# =========================
 def create_student(name, pin):
     name = name.strip()
     name_key = normalize_name(name)
@@ -445,6 +511,69 @@ def login_student(name, pin):
     return True, student
 
 
+# =========================
+# حسابات الأساتذة
+# =========================
+def create_teacher(name, pin):
+    name = name.strip()
+    name_key = normalize_name(name)
+
+    if not name or not pin:
+        return False, "اكتب الاسم والرمز السري."
+
+    if len(pin) < 4:
+        return False, "الرمز السري يجب أن يحتوي على 4 أحرف أو أرقام على الأقل."
+
+    existing = (
+        supabase.table("teachers")
+        .select("*")
+        .eq("name_key", name_key)
+        .execute()
+    )
+
+    if existing.data:
+        return False, "هذا الأستاذ مسجل من قبل. جرّب تسجيل الدخول."
+
+    result = (
+        supabase.table("teachers")
+        .insert({
+            "name": name,
+            "name_key": name_key,
+            "pin_hash": hash_pin(pin)
+        })
+        .execute()
+    )
+
+    if result.data:
+        return True, result.data[0]
+
+    return False, "حدث خطأ أثناء إنشاء حساب الأستاذ."
+
+
+def login_teacher(name, pin):
+    name_key = normalize_name(name)
+
+    result = (
+        supabase.table("teachers")
+        .select("*")
+        .eq("name_key", name_key)
+        .execute()
+    )
+
+    if not result.data:
+        return False, "لا يوجد حساب أستاذ بهذا الاسم."
+
+    teacher = result.data[0]
+
+    if teacher["pin_hash"] != hash_pin(pin):
+        return False, "الرمز السري غير صحيح."
+
+    return True, teacher
+
+
+# =========================
+# السجل الشخصي للتلميذ
+# =========================
 def save_interaction(student_id, task_type, language, level, question, answer):
     supabase.table("study_logs").insert({
         "student_id": student_id,
@@ -470,163 +599,234 @@ def get_student_history(student_id, limit=30):
 
 
 def delete_student_history(student_id):
-    result = (
+    return (
         supabase.table("study_logs")
         .delete()
         .eq("student_id", student_id)
         .execute()
     )
 
-    return result
-
 
 # =========================
-# Session State
+# الأقسام والاختبارات
 # =========================
-if "student" not in st.session_state:
-    st.session_state.student = None
+def create_class(teacher_id, class_name):
+    class_code = generate_class_code()
 
-if "quiz_questions" not in st.session_state:
-    st.session_state.quiz_questions = []
-
-if "quiz_version" not in st.session_state:
-    st.session_state.quiz_version = 0
-
-
-# =========================
-# صفحة تسجيل الدخول
-# =========================
-if st.session_state.student is None:
-    st.markdown(
-        """
-        <div class="section-card">
-            <div class="section-title">👤 دخول التلميذ</div>
-            <div class="small-note">
-                أنشئ حسابًا باسمك ورمز سري، وبعدها ستبقى أسئلتك محفوظة في حسابك.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
+    result = (
+        supabase.table("classes")
+        .insert({
+            "teacher_id": teacher_id,
+            "class_name": class_name,
+            "class_code": class_code
+        })
+        .execute()
     )
 
-    mode = st.radio(
-        "اختر العملية:",
-        ["تسجيل الدخول", "إنشاء حساب جديد"],
-        horizontal=True
+    if result.data:
+        return True, result.data[0]
+
+    return False, "حدث خطأ أثناء إنشاء القسم."
+
+
+def get_teacher_classes(teacher_id):
+    result = (
+        supabase.table("classes")
+        .select("*")
+        .eq("teacher_id", teacher_id)
+        .order("created_at", desc=True)
+        .execute()
     )
 
-    student_name = st.text_input("اسم التلميذ:")
-    student_pin = st.text_input("الرمز السري:", type="password")
-
-    if mode == "إنشاء حساب جديد":
-        if st.button("🚀 إنشاء الحساب"):
-            try:
-                ok, result = create_student(student_name, student_pin)
-
-                if ok:
-                    st.session_state.student = result
-                    st.success("تم إنشاء الحساب بنجاح.")
-                    st.rerun()
-                else:
-                    st.warning(result)
-
-            except Exception as e:
-                st.error("حدث خطأ أثناء إنشاء الحساب.")
-                st.code(str(e))
-
-    else:
-        if st.button("🚀 تسجيل الدخول"):
-            try:
-                ok, result = login_student(student_name, student_pin)
-
-                if ok:
-                    st.session_state.student = result
-                    st.success("تم تسجيل الدخول بنجاح.")
-                    st.rerun()
-                else:
-                    st.warning(result)
-
-            except Exception as e:
-                st.error("حدث خطأ أثناء تسجيل الدخول.")
-                st.code(str(e))
-
-    st.stop()
+    return result.data or []
 
 
-student = st.session_state.student
+def join_class(student_id, code):
+    code = normalize_code(code)
+
+    class_result = (
+        supabase.table("classes")
+        .select("*")
+        .eq("class_code", code)
+        .execute()
+    )
+
+    if not class_result.data:
+        return False, "لم يتم العثور على قسم بهذا الكود."
+
+    class_item = class_result.data[0]
+
+    existing = (
+        supabase.table("class_students")
+        .select("*")
+        .eq("class_id", class_item["id"])
+        .eq("student_id", student_id)
+        .execute()
+    )
+
+    if existing.data:
+        return False, "أنت منضم لهذا القسم من قبل."
+
+    supabase.table("class_students").insert({
+        "class_id": class_item["id"],
+        "student_id": student_id
+    }).execute()
+
+    return True, class_item
 
 
-# =========================
-# ترحيب الطالب
-# =========================
-student_name_safe = html.escape(student["name"])
+def get_student_classes(student_id):
+    memberships = (
+        supabase.table("class_students")
+        .select("*")
+        .eq("student_id", student_id)
+        .execute()
+    )
 
-st.markdown(
-    f"""
-    <div class="section-card">
-        <div class="section-title">مرحبا {student_name_safe} 👋</div>
-        <div class="small-note">
-            أنت الآن داخل حسابك. كل سؤال وجواب سيتم حفظه في سجلك الدراسي.
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    items = []
 
-if st.button("تسجيل الخروج"):
-    st.session_state.student = None
-    st.session_state.quiz_questions = []
-    st.rerun()
+    for membership in memberships.data or []:
+        class_result = (
+            supabase.table("classes")
+            .select("*")
+            .eq("id", membership["class_id"])
+            .execute()
+        )
 
+        if class_result.data:
+            items.append(class_result.data[0])
 
-# =========================
-# إعدادات المساعدة
-# =========================
-st.markdown(
-    """
-    <div class="section-card">
-        <div class="section-title">⚙️ إعدادات المساعدة</div>
-        <div class="small-note">
-            اختر نوع المساعدة، اللغة، والمستوى الدراسي.
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    return items
 
 
-task_type = st.selectbox(
-    "اختر نوع المساعدة:",
-    [
-        "شرح درس",
-        "تلخيص نص",
-        "إنشاء أسئلة للمراجعة",
-        "تبسيط مفهوم",
-        "تصحيح جواب",
-        "Quiz Mode",
-        "سجل أسئلتي"
-    ]
-)
+def create_teacher_quiz(teacher_id, class_id, title, topic, language, level, count):
+    prompt = build_quiz_prompt(language, level, topic, count)
+    answer_text = generate_with_retry(prompt)
+    quiz_data = extract_json(answer_text)
 
-language = st.selectbox(
-    "اختر اللغة:",
-    [
-        "العربية",
-        "الفرنسية",
-        "الإنجليزية",
-        "الدارجة المغربية"
-    ]
-)
+    result = (
+        supabase.table("teacher_quizzes")
+        .insert({
+            "teacher_id": teacher_id,
+            "class_id": class_id,
+            "title": title,
+            "topic": topic,
+            "language": language,
+            "level": level,
+            "questions_json": quiz_data
+        })
+        .execute()
+    )
 
-level = st.selectbox(
-    "اختر المستوى الدراسي:",
-    [
-        "ابتدائي",
-        "إعدادي",
-        "ثانوي",
-        "جامعي"
-    ]
-)
+    if result.data:
+        return True, result.data[0]
+
+    return False, "حدث خطأ أثناء حفظ الاختبار."
+
+
+def get_teacher_quizzes(teacher_id):
+    result = (
+        supabase.table("teacher_quizzes")
+        .select("*")
+        .eq("teacher_id", teacher_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    return result.data or []
+
+
+def get_student_teacher_quizzes(student_id):
+    memberships = (
+        supabase.table("class_students")
+        .select("*")
+        .eq("student_id", student_id)
+        .execute()
+    )
+
+    class_ids = [item["class_id"] for item in memberships.data or []]
+
+    if not class_ids:
+        return []
+
+    result = (
+        supabase.table("teacher_quizzes")
+        .select("*")
+        .in_("class_id", class_ids)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    return result.data or []
+
+
+def get_submission(quiz_id, student_id):
+    result = (
+        supabase.table("quiz_submissions")
+        .select("*")
+        .eq("quiz_id", quiz_id)
+        .eq("student_id", student_id)
+        .execute()
+    )
+
+    if result.data:
+        return result.data[0]
+
+    return None
+
+
+def save_submission(quiz_id, student_id, score, total, answers_json):
+    existing = get_submission(quiz_id, student_id)
+
+    payload = {
+        "quiz_id": quiz_id,
+        "student_id": student_id,
+        "score": score,
+        "total": total,
+        "answers_json": answers_json
+    }
+
+    if existing:
+        return (
+            supabase.table("quiz_submissions")
+            .update(payload)
+            .eq("id", existing["id"])
+            .execute()
+        )
+
+    return (
+        supabase.table("quiz_submissions")
+        .insert(payload)
+        .execute()
+    )
+
+
+def get_quiz_submissions(quiz_id):
+    result = (
+        supabase.table("quiz_submissions")
+        .select("*")
+        .eq("quiz_id", quiz_id)
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    submissions = result.data or []
+
+    for item in submissions:
+        student_result = (
+            supabase.table("students")
+            .select("name")
+            .eq("id", item["student_id"])
+            .execute()
+        )
+
+        item["student_name"] = (
+            student_result.data[0]["name"]
+            if student_result.data
+            else "تلميذ غير معروف"
+        )
+
+    return submissions
 
 
 # =========================
@@ -763,22 +963,8 @@ def build_quiz_prompt(lang, student_level, topic, count):
 """
 
 
-def extract_json(text):
-    text = text.strip()
-    text = text.replace("```json", "")
-    text = text.replace("```", "")
-
-    start = text.find("{")
-    end = text.rfind("}")
-
-    if start != -1 and end != -1:
-        text = text[start:end + 1]
-
-    return json.loads(text)
-
-
 # =========================
-# دوال عرض آمنة بدون HTML للنتائج
+# دوال عرض آمنة
 # =========================
 def render_answer_card(title, content):
     with st.container(border=True):
@@ -828,9 +1014,396 @@ def render_score_card(score, total):
 
 
 # =========================
-# سجل الأسئلة
+# Session State
 # =========================
-if task_type == "سجل أسئلتي":
+if "account" not in st.session_state:
+    st.session_state.account = None
+
+if "account_type" not in st.session_state:
+    st.session_state.account_type = None
+
+if "quiz_questions" not in st.session_state:
+    st.session_state.quiz_questions = []
+
+if "quiz_version" not in st.session_state:
+    st.session_state.quiz_version = 0
+
+
+# =========================
+# صفحة تسجيل الدخول
+# =========================
+if st.session_state.account is None:
+    st.markdown(
+        """
+        <div class="section-card">
+            <div class="section-title">👤 الدخول إلى المنصة</div>
+            <div class="small-note">
+                اختر نوع الحساب: تلميذ أو أستاذ. الأستاذ يستطيع إنشاء أقسام وإرسال اختبارات للتلاميذ.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    account_type_choice = st.radio(
+        "نوع الحساب:",
+        ["تلميذ", "أستاذ"],
+        horizontal=True
+    )
+
+    mode = st.radio(
+        "اختر العملية:",
+        ["تسجيل الدخول", "إنشاء حساب جديد"],
+        horizontal=True
+    )
+
+    user_name = st.text_input("الاسم:")
+    user_pin = st.text_input("الرمز السري:", type="password")
+
+    if account_type_choice == "تلميذ":
+        if mode == "إنشاء حساب جديد":
+            if st.button("🚀 إنشاء حساب تلميذ"):
+                try:
+                    ok, result = create_student(user_name, user_pin)
+
+                    if ok:
+                        st.session_state.account = result
+                        st.session_state.account_type = "student"
+                        st.success("تم إنشاء حساب التلميذ بنجاح.")
+                        st.rerun()
+                    else:
+                        st.warning(result)
+
+                except Exception as e:
+                    st.error("حدث خطأ أثناء إنشاء الحساب.")
+                    st.code(str(e))
+        else:
+            if st.button("🚀 دخول التلميذ"):
+                try:
+                    ok, result = login_student(user_name, user_pin)
+
+                    if ok:
+                        st.session_state.account = result
+                        st.session_state.account_type = "student"
+                        st.success("تم تسجيل الدخول بنجاح.")
+                        st.rerun()
+                    else:
+                        st.warning(result)
+
+                except Exception as e:
+                    st.error("حدث خطأ أثناء تسجيل الدخول.")
+                    st.code(str(e))
+
+    else:
+        if mode == "إنشاء حساب جديد":
+            if st.button("🚀 إنشاء حساب أستاذ"):
+                try:
+                    ok, result = create_teacher(user_name, user_pin)
+
+                    if ok:
+                        st.session_state.account = result
+                        st.session_state.account_type = "teacher"
+                        st.success("تم إنشاء حساب الأستاذ بنجاح.")
+                        st.rerun()
+                    else:
+                        st.warning(result)
+
+                except Exception as e:
+                    st.error("حدث خطأ أثناء إنشاء حساب الأستاذ.")
+                    st.code(str(e))
+        else:
+            if st.button("🚀 دخول الأستاذ"):
+                try:
+                    ok, result = login_teacher(user_name, user_pin)
+
+                    if ok:
+                        st.session_state.account = result
+                        st.session_state.account_type = "teacher"
+                        st.success("تم تسجيل الدخول بنجاح.")
+                        st.rerun()
+                    else:
+                        st.warning(result)
+
+                except Exception as e:
+                    st.error("حدث خطأ أثناء تسجيل دخول الأستاذ.")
+                    st.code(str(e))
+
+    st.stop()
+
+
+account = st.session_state.account
+account_type = st.session_state.account_type
+name_safe = html.escape(account["name"])
+
+
+# =========================
+# شريط الحساب
+# =========================
+role_label = "أستاذ" if account_type == "teacher" else "تلميذ"
+
+st.markdown(
+    f"""
+    <div class="section-card">
+        <div class="section-title">مرحبا {name_safe} 👋</div>
+        <div class="small-note">
+            نوع الحساب: {role_label}
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+if st.button("تسجيل الخروج"):
+    st.session_state.account = None
+    st.session_state.account_type = None
+    st.session_state.quiz_questions = []
+    st.rerun()
+
+
+# =========================
+# لوحة الأستاذ
+# =========================
+if account_type == "teacher":
+    st.markdown(
+        """
+        <div class="teacher-card">
+            <div class="teacher-title">🧑‍🏫 لوحة الأستاذ</div>
+            <div class="small-note">
+                يمكنك إنشاء قسم، إرسال Quiz للتلاميذ، ومتابعة النتائج.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    teacher_page = st.selectbox(
+        "اختر الخدمة:",
+        [
+            "إنشاء قسم",
+            "أقسامي",
+            "إنشاء Quiz للقسم",
+            "نتائج التلاميذ"
+        ]
+    )
+
+    if teacher_page == "إنشاء قسم":
+        st.markdown("## ➕ إنشاء قسم جديد")
+
+        class_name = st.text_input("اسم القسم:", placeholder="مثال: الثانية إعدادي - رياضيات")
+
+        if st.button("إنشاء القسم"):
+            if not class_name.strip():
+                st.warning("اكتب اسم القسم أولًا.")
+            else:
+                try:
+                    ok, result = create_class(account["id"], class_name)
+
+                    if ok:
+                        st.success("تم إنشاء القسم بنجاح.")
+                        st.markdown("### كود القسم للتلاميذ:")
+                        st.markdown(
+                            f"""
+                            <div class="code-box">{result["class_code"]}</div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                        st.info("أرسل هذا الكود للتلاميذ حتى ينضموا إلى القسم.")
+                    else:
+                        st.error(result)
+
+                except Exception as e:
+                    st.error("حدث خطأ أثناء إنشاء القسم.")
+                    st.code(str(e))
+
+    elif teacher_page == "أقسامي":
+        st.markdown("## 📚 أقسامي")
+
+        classes = get_teacher_classes(account["id"])
+
+        if not classes:
+            st.info("لم تنشئ أي قسم بعد.")
+        else:
+            for cls in classes:
+                with st.container(border=True):
+                    st.markdown(f"### {cls['class_name']}")
+                    st.markdown("**كود القسم:**")
+                    st.markdown(
+                        f"""
+                        <div class="code-box">{cls["class_code"]}</div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+    elif teacher_page == "إنشاء Quiz للقسم":
+        st.markdown("## 🧠 إنشاء Quiz وإرساله للقسم")
+
+        classes = get_teacher_classes(account["id"])
+
+        if not classes:
+            st.warning("يجب إنشاء قسم أولًا قبل إرسال Quiz.")
+        else:
+            class_labels = {
+                f'{cls["class_name"]} — {cls["class_code"]}': cls
+                for cls in classes
+            }
+
+            selected_label = st.selectbox("اختر القسم:", list(class_labels.keys()))
+            selected_class = class_labels[selected_label]
+
+            quiz_title = st.text_input("عنوان Quiz:", placeholder="مثال: Quiz المعادلات من الدرجة الأولى")
+            quiz_topic = st.text_area("موضوع Quiz:", placeholder="مثال: المعادلات من الدرجة الأولى", height=120)
+
+            quiz_language = st.selectbox(
+                "لغة Quiz:",
+                ["العربية", "الفرنسية", "الإنجليزية", "الدارجة المغربية"]
+            )
+
+            quiz_level = st.selectbox(
+                "المستوى:",
+                ["ابتدائي", "إعدادي", "ثانوي", "جامعي"]
+            )
+
+            quiz_count = st.selectbox("عدد الأسئلة:", [3, 5, 10])
+
+            if st.button("✨ إنشاء وإرسال Quiz"):
+                if not quiz_title.strip() or not quiz_topic.strip():
+                    st.warning("اكتب عنوان Quiz والموضوع أولًا.")
+                else:
+                    with st.spinner("جاري إنشاء Quiz وإرساله للقسم..."):
+                        try:
+                            ok, result = create_teacher_quiz(
+                                account["id"],
+                                selected_class["id"],
+                                quiz_title,
+                                quiz_topic,
+                                quiz_language,
+                                quiz_level,
+                                quiz_count
+                            )
+
+                            if ok:
+                                st.success("تم إنشاء Quiz وإرساله للتلاميذ بنجاح.")
+                            else:
+                                st.error(result)
+
+                        except Exception as e:
+                            st.error("حدث خطأ أثناء إنشاء Quiz.")
+                            st.code(str(e))
+
+    elif teacher_page == "نتائج التلاميذ":
+        st.markdown("## 📊 نتائج التلاميذ")
+
+        quizzes = get_teacher_quizzes(account["id"])
+
+        if not quizzes:
+            st.info("لم تنشئ أي Quiz بعد.")
+        else:
+            quiz_labels = {
+                f'{quiz["title"]} — {quiz["created_at"][:10]}': quiz
+                for quiz in quizzes
+            }
+
+            selected_quiz_label = st.selectbox("اختر Quiz:", list(quiz_labels.keys()))
+            selected_quiz = quiz_labels[selected_quiz_label]
+
+            submissions = get_quiz_submissions(selected_quiz["id"])
+
+            st.markdown(f"### {selected_quiz['title']}")
+            st.caption(f"الموضوع: {selected_quiz['topic']}")
+
+            if not submissions:
+                st.info("لا توجد أجوبة من التلاميذ بعد.")
+            else:
+                for sub in submissions:
+                    with st.expander(f'{sub["student_name"]} — {sub["score"]}/{sub["total"]}'):
+                        st.markdown(f"**التلميذ:** {sub['student_name']}")
+                        st.markdown(f"**الدرجة:** {sub['score']} / {sub['total']}")
+                        st.markdown(f"**التاريخ:** {sub['created_at'][:19]}")
+
+                        answers = sub.get("answers_json", [])
+
+                        if isinstance(answers, str):
+                            try:
+                                answers = json.loads(answers)
+                            except Exception:
+                                answers = []
+
+                        for idx, item in enumerate(answers):
+                            st.markdown("---")
+                            st.markdown(f"### السؤال {idx + 1}")
+                            st.write(item.get("question", ""))
+                            st.markdown("**جواب التلميذ:**")
+                            st.write(item.get("student_answer", ""))
+                            st.markdown("**الجواب الصحيح:**")
+                            st.write(item.get("correct_answer", ""))
+                            st.markdown("**النتيجة:**")
+                            st.write("صحيح ✅" if item.get("is_correct") else "خطأ ❌")
+
+    st.markdown(
+        """
+        <div class="footer">
+            <div class="footer-icons">🇲🇦 📚 🤖 ✨</div>
+            <strong>AI Study Assistant Morocco</strong><br>
+            لوحة الأستاذ — إنشاء Quiz ومتابعة نتائج التلاميذ
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.stop()
+
+
+# =========================
+# لوحة التلميذ
+# =========================
+st.markdown(
+    """
+    <div class="section-card">
+        <div class="section-title">⚙️ لوحة التلميذ</div>
+        <div class="small-note">
+            يمكنك استعمال المساعد الدراسي، حل Quiz، الانضمام إلى قسم، أو مشاهدة Quizzes من الأستاذ.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+student_page = st.selectbox(
+    "اختر الخدمة:",
+    [
+        "المساعد الدراسي",
+        "Quiz Mode",
+        "الانضمام إلى قسم",
+        "Quizzes من الأستاذ",
+        "سجل أسئلتي"
+    ]
+)
+
+language = st.selectbox(
+    "اختر اللغة:",
+    [
+        "العربية",
+        "الفرنسية",
+        "الإنجليزية",
+        "الدارجة المغربية"
+    ]
+)
+
+level = st.selectbox(
+    "اختر المستوى الدراسي:",
+    [
+        "ابتدائي",
+        "إعدادي",
+        "ثانوي",
+        "جامعي"
+    ]
+)
+
+
+# =========================
+# سجل التلميذ
+# =========================
+if student_page == "سجل أسئلتي":
     st.markdown("## 📚 سجل أسئلتي")
 
     st.markdown(
@@ -852,7 +1425,7 @@ if task_type == "سجل أسئلتي":
             st.warning("قبل الحذف، فعّل خانة التأكيد أولًا.")
         else:
             try:
-                delete_student_history(student["id"])
+                delete_student_history(account["id"])
                 st.success("تم حذف سجل أسئلتك بنجاح.")
                 st.rerun()
             except Exception as e:
@@ -862,7 +1435,7 @@ if task_type == "سجل أسئلتي":
     st.markdown("---")
 
     try:
-        history = get_student_history(student["id"], limit=30)
+        history = get_student_history(account["id"], limit=30)
 
         if not history:
             st.info("لا توجد أسئلة محفوظة بعد.")
@@ -888,9 +1461,143 @@ if task_type == "سجل أسئلتي":
 
 
 # =========================
-# Quiz Mode
+# انضمام التلميذ إلى قسم
 # =========================
-elif task_type == "Quiz Mode":
+elif student_page == "الانضمام إلى قسم":
+    st.markdown("## 🏫 الانضمام إلى قسم")
+
+    code = st.text_input("اكتب كود القسم الذي أعطاه لك الأستاذ:")
+
+    if st.button("الانضمام إلى القسم"):
+        if not code.strip():
+            st.warning("اكتب كود القسم أولًا.")
+        else:
+            try:
+                ok, result = join_class(account["id"], code)
+
+                if ok:
+                    st.success(f'تم الانضمام إلى القسم: {result["class_name"]}')
+                else:
+                    st.warning(result)
+
+            except Exception as e:
+                st.error("حدث خطأ أثناء الانضمام إلى القسم.")
+                st.code(str(e))
+
+    st.markdown("## أقسامي")
+    classes = get_student_classes(account["id"])
+
+    if not classes:
+        st.info("لم تنضم إلى أي قسم بعد.")
+    else:
+        for cls in classes:
+            with st.container(border=True):
+                st.markdown(f"### {cls['class_name']}")
+                st.caption(f"كود القسم: {cls['class_code']}")
+
+
+# =========================
+# Quizzes من الأستاذ
+# =========================
+elif student_page == "Quizzes من الأستاذ":
+    st.markdown("## 🧑‍🏫 Quizzes من الأستاذ")
+
+    quizzes = get_student_teacher_quizzes(account["id"])
+
+    if not quizzes:
+        st.info("لا توجد اختبارات من الأستاذ بعد. تأكد أنك منضم إلى قسم.")
+    else:
+        quiz_labels = {
+            f'{quiz["title"]} — {quiz["created_at"][:10]}': quiz
+            for quiz in quizzes
+        }
+
+        selected_quiz_label = st.selectbox("اختر Quiz:", list(quiz_labels.keys()))
+        selected_quiz = quiz_labels[selected_quiz_label]
+
+        existing_submission = get_submission(selected_quiz["id"], account["id"])
+
+        st.markdown(f"### {selected_quiz['title']}")
+        st.caption(f"الموضوع: {selected_quiz['topic']}")
+
+        if existing_submission:
+            st.success(
+                f'لقد أجبت على هذا Quiz من قبل. درجتك: {existing_submission["score"]}/{existing_submission["total"]}'
+            )
+
+        questions_data = selected_quiz["questions_json"]
+
+        if isinstance(questions_data, str):
+            questions_data = json.loads(questions_data)
+
+        questions = questions_data.get("questions", [])
+
+        student_answers = []
+
+        for i, q in enumerate(questions):
+            render_quiz_question_card(i + 1, q["question"])
+
+            answer = st.radio(
+                "اختر الجواب:",
+                q["choices"],
+                key=f'teacher_quiz_{selected_quiz["id"]}_{i}'
+            )
+
+            selected_index = q["choices"].index(answer)
+            student_answers.append(selected_index)
+
+        if st.button("✅ إرسال Quiz للأستاذ"):
+            score = 0
+            answers_json = []
+
+            st.markdown("## النتيجة")
+
+            for i, q in enumerate(questions):
+                correct_index = int(q["answer_index"])
+                selected_index = student_answers[i]
+                is_correct = selected_index == correct_index
+
+                if is_correct:
+                    score += 1
+
+                render_quiz_result_card(
+                    i + 1,
+                    q["question"],
+                    q["choices"][selected_index],
+                    q["choices"][correct_index],
+                    q["explanation"],
+                    is_correct
+                )
+
+                answers_json.append({
+                    "question": q["question"],
+                    "student_answer": q["choices"][selected_index],
+                    "correct_answer": q["choices"][correct_index],
+                    "is_correct": is_correct,
+                    "explanation": q["explanation"]
+                })
+
+            total = len(questions)
+            render_score_card(score, total)
+
+            try:
+                save_submission(
+                    selected_quiz["id"],
+                    account["id"],
+                    score,
+                    total,
+                    answers_json
+                )
+                st.success("تم إرسال نتيجتك للأستاذ بنجاح.")
+            except Exception as e:
+                st.error("حدث خطأ أثناء إرسال النتيجة للأستاذ.")
+                st.code(str(e))
+
+
+# =========================
+# Quiz Mode الشخصي
+# =========================
+elif student_page == "Quiz Mode":
     st.markdown(
         """
         <div class="section-card">
@@ -966,7 +1673,6 @@ elif task_type == "Quiz Mode":
             for i, q in enumerate(st.session_state.quiz_questions):
                 correct_index = int(q["answer_index"])
                 selected_index = user_answers[i]
-
                 is_correct = selected_index == correct_index
 
                 if is_correct:
@@ -1003,7 +1709,7 @@ elif task_type == "Quiz Mode":
 
             try:
                 save_interaction(
-                    student["id"],
+                    account["id"],
                     "Quiz Mode",
                     language,
                     level,
@@ -1022,19 +1728,30 @@ elif task_type == "Quiz Mode":
 
 
 # =========================
-# باقي المهام
+# المساعد الدراسي
 # =========================
 else:
     st.markdown(
         """
         <div class="section-card">
-            <div class="section-title">🌟 أمثلة يمكنك تجربتها</div>
+            <div class="section-title">🌟 المساعد الدراسي</div>
             <div class="small-note">
-                اختر مثالًا جاهزًا أو اكتب سؤالك بنفسك في المربع.
+                اختر نوع المساعدة، ثم اكتب سؤالك أو النص.
             </div>
         </div>
         """,
         unsafe_allow_html=True
+    )
+
+    task_type = st.selectbox(
+        "اختر نوع المساعدة:",
+        [
+            "شرح درس",
+            "تلخيص نص",
+            "إنشاء أسئلة للمراجعة",
+            "تبسيط مفهوم",
+            "تصحيح جواب"
+        ]
     )
 
     example = st.selectbox(
@@ -1067,7 +1784,7 @@ else:
                     render_answer_card("📌 الجواب", answer_text)
 
                     save_interaction(
-                        student["id"],
+                        account["id"],
                         task_type,
                         language,
                         level,
@@ -1091,7 +1808,7 @@ st.markdown(
     <div class="footer">
         <div class="footer-icons">🇲🇦 📚 🤖 ✨</div>
         <strong>AI Study Assistant Morocco</strong><br>
-        تصميم مستوحى من الألوان المغربية والزليج التقليدي<br>
+        منصة للتلاميذ والأساتذة: أقسام، Quizzes، نتائج، ومساعد دراسي ذكي<br>
         تم إنشاؤه باستعمال Streamlit و Google Gemini API و Supabase<br>
         <small style="opacity: 0.7;">© 2026 - جميع الحقوق محفوظة</small>
     </div>
