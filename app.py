@@ -313,7 +313,7 @@ st.markdown(
         <h1>📚 منصة الدعم الذكي</h1>
         <p>
             منصة دعم مدرسية موجهة لتلاميذ الابتدائي والإعدادي في المغرب:
-            شرح الدروس، تمارين، Quiz، سؤال بصورة، أقسام الأستاذ، وتتبع النتائج.
+            شرح الدروس، تمارين، Quiz، سؤال بصورة، دردشة القسم، أقسام الأستاذ، وتتبع النتائج.
         </p>
     </div>
     """,
@@ -853,6 +853,106 @@ def get_student_classes(student_id):
             items.append(class_result.data[0])
 
     return items
+
+
+# =========================
+# دردشة الأقسام
+# =========================
+def send_class_message(class_id, sender_type, sender_id, sender_name, message):
+    message = message.strip()
+
+    if not message:
+        return False, "اكتب رسالة أولًا."
+
+    result = (
+        supabase.table("class_messages")
+        .insert({
+            "class_id": class_id,
+            "sender_type": sender_type,
+            "sender_id": sender_id,
+            "sender_name": sender_name,
+            "message": message
+        })
+        .execute()
+    )
+
+    if result.data:
+        return True, result.data[0]
+
+    return False, "حدث خطأ أثناء إرسال الرسالة."
+
+
+def get_class_messages(class_id, limit=100):
+    result = (
+        supabase.table("class_messages")
+        .select("*")
+        .eq("class_id", class_id)
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+
+    messages = result.data or []
+    messages.reverse()
+    return messages
+
+
+def render_class_chat(class_item, sender_type, account):
+    st.markdown("## 💬 دردشة القسم")
+
+    st.caption(
+        f'{class_item.get("class_name", "")} | '
+        f'{class_item.get("school_level", "")} | '
+        f'{class_item.get("subject", "")}'
+    )
+
+    message_key = f"chat_message_{class_item['id']}_{sender_type}"
+
+    message_text = st.text_area(
+        "اكتب رسالتك:",
+        height=100,
+        key=message_key,
+        placeholder="اكتب رسالة قصيرة وواضحة..."
+    )
+
+    if st.button("📨 إرسال الرسالة", key=f"send_message_{class_item['id']}_{sender_type}"):
+        ok, result = send_class_message(
+            class_item["id"],
+            sender_type,
+            account["id"],
+            account["name"],
+            message_text
+        )
+
+        if ok:
+            st.success("تم إرسال الرسالة.")
+            time.sleep(0.5)
+            st.rerun()
+        else:
+            st.warning(result)
+
+    st.markdown("---")
+    st.markdown("### الرسائل")
+
+    messages = get_class_messages(class_item["id"])
+
+    if not messages:
+        st.info("لا توجد رسائل في هذا القسم بعد.")
+    else:
+        for msg in messages:
+            sender_icon = "👨‍🏫" if msg.get("sender_type") == "teacher" else "👨‍🎓"
+            sender_label = "الأستاذ" if msg.get("sender_type") == "teacher" else "تلميذ"
+            created_at = msg.get("created_at", "")[:16].replace("T", " ")
+
+            with st.container(border=True):
+                st.markdown(
+                    f"**{sender_icon} {sender_label}: {msg.get('sender_name', '')}**"
+                )
+                st.write(msg.get("message", ""))
+                st.caption(created_at)
+
+    if st.button("🔄 تحديث الدردشة", key=f"refresh_chat_{class_item['id']}_{sender_type}"):
+        st.rerun()
 
 
 def get_previous_questions_for_class(class_id, topic=None, limit=8):
@@ -1478,7 +1578,7 @@ if account_type == "teacher":
         <div class="teacher-card">
             <div class="teacher-title">🧑‍🏫 لوحة الأستاذ</div>
             <div class="small-note">
-                يمكنك إنشاء أقسام للدعم، إرسال Quiz، ومتابعة نتائج تلاميذك.
+                يمكنك إنشاء أقسام للدعم، إرسال Quiz، الدردشة مع التلاميذ، ومتابعة النتائج.
             </div>
         </div>
         """,
@@ -1491,7 +1591,8 @@ if account_type == "teacher":
             "إنشاء قسم",
             "أقسامي",
             "إنشاء Quiz للقسم",
-            "نتائج التلاميذ"
+            "نتائج التلاميذ",
+            "دردشة الأقسام"
         ]
     )
 
@@ -1793,12 +1894,38 @@ if account_type == "teacher":
                             st.markdown("**النتيجة:**")
                             st.write("صحيح ✅" if item.get("is_correct") else "خطأ ❌")
 
+    elif teacher_page == "دردشة الأقسام":
+        st.markdown("## 💬 دردشة الأقسام")
+
+        classes = get_teacher_classes(account["id"])
+
+        if not classes:
+            st.info("لم تنشئ أي قسم بعد.")
+        else:
+            class_labels = {
+                class_label(cls): cls
+                for cls in classes
+            }
+
+            selected_label = st.selectbox(
+                "اختر القسم:",
+                list(class_labels.keys())
+            )
+
+            selected_class = class_labels[selected_label]
+
+            render_class_chat(
+                selected_class,
+                "teacher",
+                account
+            )
+
     st.markdown(
         """
         <div class="footer">
             <div class="footer-icons">🇲🇦 📚 🤖 ✨</div>
             <strong>منصة الدعم الذكي</strong><br>
-            لوحة الأستاذ — أقسام الدعم، Quiz، وتتبع نتائج التلاميذ
+            لوحة الأستاذ — أقسام الدعم، Quiz، دردشة القسم، وتتبع نتائج التلاميذ
         </div>
         """,
         unsafe_allow_html=True
@@ -1815,7 +1942,7 @@ st.markdown(
     <div class="section-card">
         <div class="section-title">⚙️ لوحة التلميذ</div>
         <div class="small-note">
-            استعمل المساعد الدراسي، ارفع صورة سؤال، حل Quiz، انضم إلى قسم دعم، أو شاهد Quizzes من الأستاذ.
+            استعمل المساعد الدراسي، ارفع صورة سؤال، حل Quiz، انضم إلى قسم دعم، تحدث مع الأستاذ، أو شاهد Quizzes من الأستاذ.
         </div>
     </div>
     """,
@@ -1830,6 +1957,7 @@ student_page = st.selectbox(
         "Quiz Mode",
         "الانضمام إلى قسم",
         "Quizzes من الأستاذ",
+        "دردشة القسم",
         "سجل أسئلتي"
     ]
 )
@@ -2054,6 +2182,36 @@ elif student_page == "Quizzes من الأستاذ":
             except Exception as e:
                 st.error("حدث خطأ أثناء إرسال النتيجة للأستاذ.")
                 st.code(str(e))
+
+
+# =========================
+# دردشة القسم للتلميذ
+# =========================
+elif student_page == "دردشة القسم":
+    st.markdown("## 💬 دردشة القسم")
+
+    classes = get_student_classes(account["id"])
+
+    if not classes:
+        st.info("أنت غير منضم لأي قسم بعد. أدخل كود القسم أولًا.")
+    else:
+        class_labels = {
+            class_label(cls): cls
+            for cls in classes
+        }
+
+        selected_label = st.selectbox(
+            "اختر القسم:",
+            list(class_labels.keys())
+        )
+
+        selected_class = class_labels[selected_label]
+
+        render_class_chat(
+            selected_class,
+            "student",
+            account
+        )
 
 
 # =========================
@@ -2372,7 +2530,7 @@ st.markdown(
     <div class="footer">
         <div class="footer-icons">🇲🇦 📚 🤖 ✨</div>
         <strong>منصة الدعم الذكي</strong><br>
-        دعم مدرسي للابتدائي والإعدادي: سؤال بصورة، أقسام، Quizzes، نتائج، ومساعد دراسي ذكي<br>
+        دعم مدرسي للابتدائي والإعدادي: سؤال بصورة، دردشة القسم، أقسام، Quizzes، نتائج، ومساعد دراسي ذكي<br>
         تم إنشاؤه باستعمال Streamlit و Google Gemini API و Supabase<br>
         <small style="opacity: 0.7;">© 2026 - جميع الحقوق محفوظة</small>
     </div>
