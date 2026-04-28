@@ -22,131 +22,297 @@ st.set_page_config(
 
 
 # =========================
-# CSS التصميم المغربي
+# CSS التصميم الجديد
 # =========================
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Noto+Kufi+Arabic:wght@400;600;700;800;900&display=swap');
 
     :root {
-        --morocco-red: #b11226;
-        --morocco-green: #006233;
-        --gold: #d4af37;
-        --cream: #fff8ef;
-        --text-dark: #2d1810;
-        --text-medium: #5d4037;
+        --deep-navy: #050b1a;
+        --midnight: #070f22;
+        --electric-blue: #1a6bff;
+        --cyan-glow: #00d4ff;
+        --gold-bright: #ffc832;
+        --gold-soft: #e8a800;
+        --red-morocco: #d4192c;
+        --green-morocco: #007a3d;
+        --surface-glass: rgba(255,255,255,0.04);
+        --surface-glass-hover: rgba(255,255,255,0.08);
+        --border-glow: rgba(0, 212, 255, 0.25);
+        --border-gold: rgba(255, 200, 50, 0.35);
+        --text-white: #f0f4ff;
+        --text-muted: #8899bb;
+    }
+
+    @keyframes float3d {
+        0%, 100% { transform: translateY(0px) rotateX(0deg) rotateZ(0deg); }
+        33% { transform: translateY(-14px) rotateX(5deg) rotateZ(2deg); }
+        66% { transform: translateY(-6px) rotateX(-3deg) rotateZ(-1deg); }
+    }
+
+    @keyframes orb-pulse {
+        0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
+        50% { transform: scale(1.2) rotate(180deg); opacity: 0.85; }
+    }
+
+    @keyframes grid-scroll {
+        0% { background-position: 0 0; }
+        100% { background-position: 0 80px; }
+    }
+
+    @keyframes shimmer {
+        0% { background-position: -300% center; }
+        100% { background-position: 300% center; }
+    }
+
+    @keyframes glow-pulse {
+        0%, 100% {
+            box-shadow:
+                0 0 20px rgba(0,212,255,0.25),
+                0 0 60px rgba(0,212,255,0.08);
+        }
+        50% {
+            box-shadow:
+                0 0 40px rgba(0,212,255,0.5),
+                0 0 100px rgba(0,212,255,0.15);
+        }
+    }
+
+    @keyframes fade-up {
+        from { opacity: 0; transform: translateY(24px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes cube-spin {
+        0% { transform: perspective(300px) rotateX(15deg) rotateY(0deg) rotateZ(5deg); }
+        100% { transform: perspective(300px) rotateX(15deg) rotateY(360deg) rotateZ(5deg); }
+    }
+
+    @keyframes ring-tilt {
+        0%, 100% { transform: perspective(300px) rotateX(70deg) rotateZ(0deg); }
+        50% { transform: perspective(300px) rotateX(60deg) rotateZ(20deg); }
     }
 
     html, body, [class*="css"] {
-        font-family: 'Cairo', 'Tajawal', sans-serif;
+        font-family: 'Sora', 'Noto Kufi Arabic', sans-serif !important;
         direction: rtl;
         text-align: right;
     }
 
     .stApp {
-        background:
-            radial-gradient(circle at top left, rgba(0, 98, 51, 0.12), transparent 35%),
-            radial-gradient(circle at bottom right, rgba(177, 18, 38, 0.14), transparent 35%),
-            linear-gradient(135deg, #fff8ef 0%, #fef5eb 45%, #fffaf5 100%);
-        color: var(--text-dark);
+        background: var(--deep-navy);
+        color: var(--text-white);
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    .stApp::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(0,212,255,0.035) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,212,255,0.035) 1px, transparent 1px);
+        background-size: 55px 55px;
+        animation: grid-scroll 10s linear infinite;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .stApp::after {
+        content: "";
+        position: fixed;
+        top: -15%;
+        right: -8%;
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle at 40% 40%,
+            rgba(26,107,255,0.16) 0%,
+            rgba(0,212,255,0.07) 45%,
+            transparent 70%);
+        border-radius: 50%;
+        animation: orb-pulse 8s ease-in-out infinite;
+        pointer-events: none;
+        z-index: 0;
     }
 
     .block-container {
-        max-width: 960px;
+        max-width: 900px;
         padding-top: 2rem;
-        padding-bottom: 2rem;
+        padding-bottom: 3rem;
+        position: relative;
+        z-index: 1;
+        animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     .moroccan-hero {
-        background: linear-gradient(135deg, #b11226 0%, #c41230 30%, #006233 100%);
-        color: white;
-        padding: 2.5rem 2rem;
-        border-radius: 30px;
-        box-shadow:
-            0 18px 45px rgba(0, 0, 0, 0.22),
-            0 0 0 3px #d4af37;
-        margin-bottom: 2rem;
         position: relative;
+        background: linear-gradient(135deg,
+            rgba(8,18,45,0.97) 0%,
+            rgba(4,12,30,0.99) 100%);
+        border: 1px solid rgba(0,212,255,0.2);
+        border-radius: 28px;
+        padding: 3rem 2.5rem 2.8rem;
+        margin-bottom: 2rem;
         overflow: hidden;
+        animation: glow-pulse 5s ease-in-out infinite;
     }
 
     .moroccan-hero::before {
-        content: "✦ ✧ ✦ ✧ ✦ ✧ ✦";
+        content: "";
         position: absolute;
-        top: 16px;
-        left: 24px;
-        font-size: 22px;
-        color: rgba(255, 215, 0, 0.5);
-        letter-spacing: 9px;
+        top: -50px;
+        left: -50px;
+        width: 180px;
+        height: 180px;
+        background: linear-gradient(135deg,
+            rgba(212,25,44,0.35) 0%,
+            rgba(212,25,44,0.1) 100%);
+        border-radius: 28px;
+        transform: perspective(300px) rotateX(20deg) rotateY(-25deg) rotateZ(15deg);
+        filter: blur(0.5px);
+        animation: float3d 7s ease-in-out infinite;
+    }
+
+    .moroccan-hero::after {
+        content: "";
+        position: absolute;
+        bottom: -30px;
+        right: -30px;
+        width: 140px;
+        height: 140px;
+        background: linear-gradient(135deg,
+            rgba(26,107,255,0.45),
+            rgba(0,212,255,0.2));
+        border-radius: 20px;
+        transform: perspective(300px) rotateX(-20deg) rotateY(30deg) rotateZ(-10deg);
+        filter: blur(1px);
+        animation: float3d 9s ease-in-out infinite 2s;
+    }
+
+    .hero-top-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg,
+            var(--red-morocco) 0%,
+            var(--gold-bright) 33%,
+            var(--green-morocco) 66%,
+            var(--cyan-glow) 100%);
+        background-size: 300% 100%;
+        animation: shimmer 4s linear infinite;
     }
 
     .moroccan-badge {
-        display: inline-block;
-        background: rgba(255, 255, 255, 0.18);
-        color: #ffe9a6;
-        padding: 9px 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg,
+            rgba(255,200,50,0.12),
+            rgba(255,200,50,0.04));
+        border: 1px solid rgba(255,200,50,0.3);
+        color: var(--gold-bright);
+        padding: 8px 20px;
         border-radius: 999px;
-        font-weight: 800;
-        font-size: 14px;
-        margin-bottom: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.35);
+        font-weight: 700;
+        font-size: 13px;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
         position: relative;
         z-index: 1;
     }
 
     .moroccan-hero h1 {
-        font-size: clamp(32px, 6vw, 52px);
-        font-weight: 900;
-        line-height: 1.25;
-        margin-bottom: 14px;
-        color: white;
+        font-size: clamp(26px, 5vw, 44px);
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg,
+            #ffffff 0%,
+            var(--cyan-glow) 55%,
+            var(--gold-bright) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         position: relative;
         z-index: 1;
     }
 
     .moroccan-hero p {
-        font-size: 18px;
-        line-height: 1.9;
-        color: #fff7df;
-        max-width: 720px;
-        margin: 0;
+        font-size: 15px;
+        line-height: 2;
+        color: rgba(136,153,187,0.9);
+        max-width: 680px;
         position: relative;
         z-index: 1;
     }
 
     .section-card {
-        background: rgba(255, 255, 255, 0.92);
-        border: 2px solid rgba(212, 175, 55, 0.35);
-        border-radius: 26px;
-        padding: 24px;
-        margin: 24px 0;
-        box-shadow: 0 10px 28px rgba(93, 64, 55, 0.10);
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(0,212,255,0.18);
+        border-radius: 20px;
+        padding: 24px 28px;
+        margin: 20px 0;
         position: relative;
         overflow: hidden;
+        backdrop-filter: blur(20px);
+        transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .section-card::before {
         content: "";
         position: absolute;
         top: 0;
-        right: 0;
         left: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #b11226, #d4af37, #006233);
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg,
+            var(--electric-blue),
+            var(--cyan-glow) 50%,
+            var(--gold-bright));
+        background-size: 200% 100%;
+        animation: shimmer 5s linear infinite;
+    }
+
+    .section-card::after {
+        content: "◆";
+        position: absolute;
+        bottom: 14px;
+        left: 18px;
+        font-size: 28px;
+        color: rgba(0,212,255,0.06);
+        transform: perspective(120px) rotateY(35deg) rotateX(25deg);
+        pointer-events: none;
+    }
+
+    .section-card:hover {
+        border-color: rgba(0,212,255,0.38);
+        background: rgba(255,255,255,0.055);
+        transform: translateY(-3px);
+        box-shadow:
+            0 20px 50px rgba(0,0,0,0.35),
+            0 0 30px rgba(0,212,255,0.12);
     }
 
     .section-title {
-        color: #b11226;
-        font-size: 26px;
-        font-weight: 900;
+        font-size: 22px;
+        font-weight: 800;
         margin-bottom: 10px;
+        background: linear-gradient(90deg, #ffffff 30%, var(--cyan-glow));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .small-note {
-        color: #5d4037;
-        font-size: 16px;
-        line-height: 1.8;
+        color: var(--text-muted);
+        font-size: 15px;
+        line-height: 1.9;
     }
 
     div[data-testid="stSelectbox"] label,
@@ -155,131 +321,349 @@ st.markdown(
     div[data-testid="stRadio"] label,
     div[data-testid="stCheckbox"] label,
     div[data-testid="stFileUploader"] label {
-        color: #5a1f1f !important;
-        font-weight: 800 !important;
-        font-size: 17px !important;
+        color: var(--cyan-glow) !important;
+        font-weight: 700 !important;
+        font-size: 15px !important;
+        letter-spacing: 0.3px !important;
     }
 
     textarea,
     input,
     div[data-baseweb="select"] > div {
-        background: #fffdf7 !important;
-        border-radius: 16px !important;
-        color: #2d1810 !important;
+        background: rgba(0,20,60,0.5) !important;
+        border: 1px solid rgba(0,212,255,0.18) !important;
+        border-radius: 14px !important;
+        color: var(--text-white) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    textarea:focus,
+    input:focus {
+        border-color: var(--cyan-glow) !important;
+        box-shadow:
+            0 0 0 2px rgba(0,212,255,0.15),
+            0 0 25px rgba(0,212,255,0.15) !important;
+        outline: none !important;
     }
 
     .stButton > button {
-        background: linear-gradient(135deg, #b11226 0%, #006233 100%);
+        background: linear-gradient(160deg,
+            #2a7fff 0%,
+            #1a6bff 35%,
+            #0050cc 70%,
+            #003a99 100%) !important;
         color: white !important;
-        border: none;
-        border-radius: 18px;
-        padding: 0.8rem 1.4rem;
-        font-size: 18px;
-        font-weight: 800;
-        box-shadow: 0 10px 25px rgba(177, 18, 38, 0.25);
-        width: 100%;
+        border: 1px solid rgba(0,212,255,0.35) !important;
+        border-radius: 16px !important;
+        padding: 0.85rem 1.5rem !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        width: 100% !important;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        box-shadow:
+            0 8px 30px rgba(26,107,255,0.4),
+            0 2px 0 rgba(255,255,255,0.12) inset,
+            0 -4px 0 rgba(0,0,0,0.35) inset !important;
+        letter-spacing: 0.3px !important;
     }
 
     .stButton > button:hover {
-        color: #fff7d6 !important;
-        transform: translateY(-2px);
+        transform: perspective(600px) translateZ(10px) translateY(-4px) !important;
+        box-shadow:
+            0 20px 50px rgba(26,107,255,0.55),
+            0 2px 0 rgba(255,255,255,0.15) inset,
+            0 -4px 0 rgba(0,0,0,0.35) inset !important;
+        border-color: var(--cyan-glow) !important;
     }
 
     div[role="radiogroup"] label,
+    div[data-testid="stRadio"] label {
+        background: rgba(0,20,55,0.6) !important;
+        border: 1px solid rgba(0,212,255,0.15) !important;
+        border-radius: 12px !important;
+        padding: 10px 16px !important;
+        margin-bottom: 8px !important;
+        color: var(--text-white) !important;
+        transition: all 0.25s ease !important;
+    }
+
+    div[role="radiogroup"] label:hover {
+        border-color: var(--cyan-glow) !important;
+        background: rgba(0,40,100,0.5) !important;
+        transform: translateX(-2px);
+    }
+
     div[role="radiogroup"] label *,
-    div[data-testid="stRadio"] label,
     div[data-testid="stRadio"] label *,
     div[data-testid="stRadio"] span,
     div[data-testid="stRadio"] p,
-    div[data-testid="stCheckbox"] label,
     div[data-testid="stCheckbox"] label *,
     div[data-testid="stCheckbox"] span,
     div[data-testid="stCheckbox"] p {
-        color: #2d1810 !important;
+        color: var(--text-white) !important;
         opacity: 1 !important;
-        visibility: visible !important;
-        font-weight: 700 !important;
-    }
-
-    div[role="radiogroup"] label {
-        background: rgba(255, 255, 255, 0.90);
-        border: 2px solid rgba(212, 175, 55, 0.35);
-        border-radius: 14px;
-        padding: 10px 14px;
-        margin-bottom: 10px;
+        font-weight: 600 !important;
     }
 
     div[data-testid="stAlert"] {
-        border-radius: 18px;
+        border-radius: 14px !important;
+        background: rgba(0,20,55,0.6) !important;
+        border: 1px solid rgba(0,212,255,0.2) !important;
     }
 
     div[data-testid="stExpander"] {
-        background: rgba(255, 255, 255, 0.92);
-        border: 2px solid rgba(212, 175, 55, 0.25);
-        border-radius: 18px;
-        overflow: hidden;
-        margin: 12px 0;
+        background: rgba(0,15,40,0.7) !important;
+        border: 1px solid rgba(0,212,255,0.15) !important;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        margin: 10px 0 !important;
+    }
+
+    div[data-testid="stExpander"]:hover {
+        border-color: rgba(0,212,255,0.3) !important;
+    }
+
+    div[data-testid="stVerticalBlockBorderWrapper"] > div {
+        background: rgba(0,15,40,0.7) !important;
+        border: 1px solid rgba(0,212,255,0.15) !important;
+        border-radius: 18px !important;
+        overflow: hidden !important;
+        transition: all 0.3s ease !important;
+    }
+
+    div[data-testid="stVerticalBlockBorderWrapper"] > div:hover {
+        border-color: rgba(0,212,255,0.3) !important;
+        box-shadow:
+            0 10px 35px rgba(0,0,0,0.4),
+            0 0 20px rgba(0,212,255,0.08) !important;
     }
 
     .danger-card {
-        background: rgba(177, 18, 38, 0.08);
-        border: 2px solid rgba(177, 18, 38, 0.25);
-        border-radius: 22px;
-        padding: 20px;
-        margin: 24px 0;
+        background: linear-gradient(135deg,
+            rgba(212,25,44,0.09),
+            rgba(212,25,44,0.03));
+        border: 1px solid rgba(212,25,44,0.28);
+        border-radius: 18px;
+        padding: 22px;
+        margin: 20px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .danger-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #ff1a3a, rgba(212,25,44,0.3), transparent);
     }
 
     .danger-title {
-        color: #b11226;
-        font-size: 22px;
-        font-weight: 900;
+        color: #ff4d6d;
+        font-size: 20px;
+        font-weight: 800;
         margin-bottom: 8px;
     }
 
     .teacher-card {
-        background: rgba(0, 98, 51, 0.08);
-        border: 2px solid rgba(0, 98, 51, 0.22);
-        border-radius: 22px;
-        padding: 20px;
+        background: linear-gradient(135deg,
+            rgba(0,122,61,0.1),
+            rgba(0,122,61,0.03));
+        border: 1px solid rgba(0,122,61,0.28);
+        border-radius: 18px;
+        padding: 22px;
         margin: 20px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .teacher-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg,
+            var(--green-morocco),
+            var(--cyan-glow) 60%,
+            transparent);
     }
 
     .teacher-title {
-        color: #006233;
-        font-size: 22px;
-        font-weight: 900;
+        color: #00e07a;
+        font-size: 20px;
+        font-weight: 800;
         margin-bottom: 8px;
     }
 
     .code-box {
-        background: #fffdf7;
-        border: 2px dashed #d4af37;
+        background: linear-gradient(135deg,
+            rgba(0,212,255,0.08),
+            rgba(26,107,255,0.05));
+        border: 1px solid rgba(0,212,255,0.3);
         border-radius: 18px;
-        padding: 18px;
+        padding: 24px;
         text-align: center;
-        font-size: 26px;
+        font-size: 32px;
         font-weight: 900;
-        color: #b11226;
-        letter-spacing: 3px;
-        margin: 15px 0;
+        color: var(--cyan-glow);
+        letter-spacing: 10px;
+        margin: 16px 0;
+        position: relative;
+        overflow: hidden;
+        text-shadow:
+            0 0 20px rgba(0,212,255,0.8),
+            0 0 40px rgba(0,212,255,0.3);
+        box-shadow:
+            0 0 0 1px rgba(0,212,255,0.1),
+            0 10px 40px rgba(0,212,255,0.12),
+            inset 0 1px 0 rgba(255,255,255,0.06),
+            inset 0 -2px 0 rgba(0,0,0,0.2);
+        animation: glow-pulse 3s ease-in-out infinite;
+        transform: perspective(500px) rotateX(2deg);
+    }
+
+    .welcome-card {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        background: linear-gradient(135deg,
+            rgba(255,200,50,0.06),
+            rgba(255,200,50,0.02));
+        border: 1px solid rgba(255,200,50,0.25);
+        border-radius: 20px;
+        padding: 20px 24px;
+        margin: 20px 0;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .welcome-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg,
+            var(--gold-bright) 0%,
+            rgba(255,200,50,0.4) 60%,
+            transparent);
+    }
+
+    .welcome-name {
+        font-size: 22px;
+        font-weight: 800;
+        background: linear-gradient(90deg, var(--gold-bright), #ffe88a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .welcome-role {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-top: 4px;
+    }
+
+    div[data-baseweb="select"] svg {
+        color: var(--cyan-glow) !important;
+    }
+
+    .stImage img {
+        border-radius: 16px;
+        border: 1px solid rgba(0,212,255,0.2);
+        box-shadow:
+            0 15px 50px rgba(0,0,0,0.5),
+            0 0 20px rgba(0,212,255,0.08);
+    }
+
+    div[data-testid="stFileUploader"] {
+        background: rgba(0,15,40,0.6) !important;
+        border: 2px dashed rgba(0,212,255,0.25) !important;
+        border-radius: 16px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    div[data-testid="stFileUploader"]:hover {
+        border-color: rgba(0,212,255,0.5) !important;
+        background: rgba(0,25,60,0.7) !important;
+    }
+
+    .stMarkdown p {
+        color: rgba(220,230,255,0.9);
+        line-height: 1.9;
+    }
+
+    .stMarkdown h1,
+    .stMarkdown h2,
+    .stMarkdown h3 {
+        color: var(--text-white);
+    }
+
+    .stCaption {
+        color: var(--text-muted) !important;
+    }
+
+    ::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--deep-navy);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0,212,255,0.28);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--cyan-glow);
     }
 
     .footer {
         text-align: center;
-        color: #7a5b2e;
+        color: var(--text-muted);
         font-size: 14px;
-        margin-top: 40px;
-        padding: 24px;
-        background: rgba(255, 255, 255, 0.65);
+        margin-top: 50px;
+        padding: 28px;
+        background: rgba(255,255,255,0.025);
         border-radius: 20px;
-        border: 1px solid rgba(212, 175, 55, 0.25);
-        line-height: 1.9;
+        border: 1px solid rgba(0,212,255,0.1);
+        line-height: 2;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .footer::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg,
+            var(--red-morocco) 0%,
+            var(--gold-bright) 33%,
+            var(--green-morocco) 66%,
+            var(--electric-blue) 100%);
+    }
+
+    .footer strong {
+        color: var(--text-white);
+        font-weight: 700;
     }
 
     .footer-icons {
-        font-size: 24px;
-        margin-bottom: 10px;
-        letter-spacing: 8px;
+        font-size: 22px;
+        margin-bottom: 12px;
+        letter-spacing: 10px;
+        filter: drop-shadow(0 0 8px rgba(0,212,255,0.4));
     }
 
     @media (max-width: 768px) {
@@ -288,32 +672,96 @@ st.markdown(
         }
 
         .moroccan-hero {
-            padding: 2rem 1.3rem;
-            border-radius: 24px;
+            padding: 2rem 1.4rem;
+            border-radius: 22px;
         }
 
         .section-card {
-            padding: 20px;
-            border-radius: 22px;
+            padding: 18px;
+            border-radius: 18px;
+        }
+
+        .code-box {
+            font-size: 24px;
+            letter-spacing: 6px;
         }
     }
     </style>
+
+    <div style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;">
+        <div style="
+            position:absolute;top:12%;right:3%;
+            width:70px;height:70px;
+            background:linear-gradient(135deg,rgba(26,107,255,0.18),rgba(0,212,255,0.08));
+            border-radius:12px;
+            border:1px solid rgba(0,212,255,0.15);
+            animation:cube-spin 12s linear infinite;
+            box-shadow:0 0 20px rgba(0,212,255,0.1);
+        "></div>
+
+        <div style="
+            position:absolute;top:52%;right:6%;
+            width:90px;height:90px;
+            border:10px solid rgba(0,212,255,0.12);
+            border-radius:50%;
+            box-shadow:0 0 25px rgba(0,212,255,0.08),inset 0 0 15px rgba(0,212,255,0.05);
+            animation:ring-tilt 8s ease-in-out infinite;
+        "></div>
+
+        <div style="
+            position:absolute;top:25%;left:2%;
+            width:0;height:0;
+            border-left:35px solid transparent;
+            border-right:35px solid transparent;
+            border-bottom:62px solid rgba(255,200,50,0.09);
+            filter:drop-shadow(0 0 10px rgba(255,200,50,0.15));
+            animation:float3d 11s ease-in-out infinite 3s;
+        "></div>
+
+        <div style="
+            position:absolute;top:75%;left:4%;
+            width:45px;height:45px;
+            background:linear-gradient(135deg,rgba(212,25,44,0.14),rgba(212,25,44,0.04));
+            border-radius:8px;
+            border:1px solid rgba(212,25,44,0.12);
+            animation:float3d 9s ease-in-out infinite 1s;
+        "></div>
+
+        <div style="
+            position:absolute;top:82%;right:10%;
+            width:55px;height:55px;
+            border:7px solid rgba(0,122,61,0.15);
+            border-radius:50%;
+            animation:ring-tilt 10s ease-in-out infinite 4s;
+            box-shadow:0 0 15px rgba(0,122,61,0.1);
+        "></div>
+
+        <div style="
+            position:fixed;bottom:-10%;left:-8%;
+            width:500px;height:500px;
+            background:radial-gradient(circle,rgba(0,122,61,0.1) 0%,transparent 65%);
+            border-radius:50%;
+            animation:orb-pulse 10s ease-in-out infinite 3s;
+            pointer-events:none;
+        "></div>
+    </div>
     """,
     unsafe_allow_html=True
 )
 
 
 # =========================
-# الهيدر
+# الهيدر الجديد
 # =========================
 st.markdown(
     """
     <div class="moroccan-hero">
+        <div class="hero-top-bar"></div>
         <div class="moroccan-badge">🇲🇦 Soutien Scolaire Intelligent</div>
         <h1>📚 منصة الدعم الذكي</h1>
         <p>
-            منصة دعم مدرسية موجهة لتلاميذ الابتدائي والإعدادي في المغرب:
-            شرح الدروس، تمارين، Quiz، سؤال بصورة، دردشة القسم، أقسام الأستاذ، وتتبع النتائج.
+            واجهة تعليمية عصرية للتلاميذ والأساتذة في المغرب:
+            شرح الدروس، حل التمارين بالصور، Quiz، دردشة القسم، وتتبع النتائج بطريقة بسيطة وجميلة.
         </p>
     </div>
     """,
@@ -432,7 +880,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 # =========================
-# Gemini مع إعادة المحاولة
+# Gemini
 # =========================
 def generate_with_retry(prompt, max_retries=3):
     models = [
@@ -482,9 +930,6 @@ def generate_with_retry(prompt, max_retries=3):
     raise last_error
 
 
-# =========================
-# Gemini مع صورة + إعادة المحاولة
-# =========================
 def generate_with_retry_image(prompt, uploaded_image, max_retries=3):
     models = [
         "gemini-2.5-flash",
@@ -752,7 +1197,7 @@ def delete_student_history(student_id):
 
 
 # =========================
-# الأقسام والاختبارات
+# الأقسام
 # =========================
 def create_class(teacher_id, class_name, school_cycle, school_level, subject):
     class_code = generate_class_code()
@@ -855,9 +1300,6 @@ def get_student_classes(student_id):
     return items
 
 
-# =========================
-# الخروج من القسم / حذف القسم
-# =========================
 def leave_class(student_id, class_id):
     try:
         supabase.table("class_students") \
@@ -995,6 +1437,9 @@ def render_class_chat(class_item, sender_type, account):
         st.rerun()
 
 
+# =========================
+# Quizzes
+# =========================
 def get_previous_questions_for_class(class_id, topic=None, limit=8):
     query = (
         supabase.table("teacher_quizzes")
@@ -1413,7 +1858,7 @@ def build_quiz_prompt(lang, school_cycle, school_level, subject, topic, count, p
 
 
 # =========================
-# دوال عرض آمنة
+# دوال عرض
 # =========================
 def render_answer_card(title, content):
     with st.container(border=True):
@@ -1479,7 +1924,7 @@ if "quiz_version" not in st.session_state:
 
 
 # =========================
-# صفحة تسجيل الدخول
+# تسجيل الدخول
 # =========================
 if st.session_state.account is None:
     st.markdown(
@@ -1592,10 +2037,10 @@ role_label = "أستاذ" if account_type == "teacher" else "تلميذ"
 
 st.markdown(
     f"""
-    <div class="section-card">
-        <div class="section-title">مرحبا {name_safe} 👋</div>
-        <div class="small-note">
-            نوع الحساب: {role_label}
+    <div class="welcome-card">
+        <div>
+            <div class="welcome-name">مرحبا {name_safe} 👋</div>
+            <div class="welcome-role">نوع الحساب: {role_label}</div>
         </div>
     </div>
     """,
@@ -2111,7 +2556,7 @@ if student_page == "سجل أسئلتي":
 
 
 # =========================
-# انضمام التلميذ إلى قسم
+# الانضمام إلى قسم
 # =========================
 elif student_page == "الانضمام إلى قسم":
     st.markdown("## 🏫 الانضمام إلى قسم دعم")
@@ -2287,7 +2732,7 @@ elif student_page == "Quizzes من الأستاذ":
 
 
 # =========================
-# دردشة القسم للتلميذ
+# دردشة القسم
 # =========================
 elif student_page == "دردشة القسم":
     st.markdown("## 💬 دردشة القسم")
@@ -2405,7 +2850,7 @@ elif student_page == "سؤال بصورة":
 
 
 # =========================
-# Quiz Mode الشخصي
+# Quiz Mode
 # =========================
 elif student_page == "Quiz Mode":
     st.markdown(
