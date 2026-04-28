@@ -15,304 +15,242 @@ from supabase import create_client
 # إعداد الصفحة
 # =========================
 st.set_page_config(
-    page_title="AI Soutien Scolaire Morocco",
+    page_title="منصة الدعم الذكي",
     page_icon="🇲🇦",
     layout="centered"
 )
 
 
 # =========================
-# CSS التصميم الجديد
+# CSS تصميم زليج مغربي باهت
 # =========================
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Noto+Kufi+Arabic:wght@400;600;700;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
 
     :root {
-        --deep-navy: #050b1a;
-        --midnight: #070f22;
-        --electric-blue: #1a6bff;
-        --cyan-glow: #00d4ff;
-        --gold-bright: #ffc832;
-        --gold-soft: #e8a800;
-        --red-morocco: #d4192c;
-        --green-morocco: #007a3d;
-        --surface-glass: rgba(255,255,255,0.04);
-        --surface-glass-hover: rgba(255,255,255,0.08);
-        --border-glow: rgba(0, 212, 255, 0.25);
-        --border-gold: rgba(255, 200, 50, 0.35);
-        --text-white: #f0f4ff;
-        --text-muted: #8899bb;
-    }
-
-    @keyframes float3d {
-        0%, 100% { transform: translateY(0px) rotateX(0deg) rotateZ(0deg); }
-        33% { transform: translateY(-14px) rotateX(5deg) rotateZ(2deg); }
-        66% { transform: translateY(-6px) rotateX(-3deg) rotateZ(-1deg); }
-    }
-
-    @keyframes orb-pulse {
-        0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
-        50% { transform: scale(1.2) rotate(180deg); opacity: 0.85; }
-    }
-
-    @keyframes grid-scroll {
-        0% { background-position: 0 0; }
-        100% { background-position: 0 80px; }
-    }
-
-    @keyframes shimmer {
-        0% { background-position: -300% center; }
-        100% { background-position: 300% center; }
-    }
-
-    @keyframes glow-pulse {
-        0%, 100% {
-            box-shadow:
-                0 0 20px rgba(0,212,255,0.25),
-                0 0 60px rgba(0,212,255,0.08);
-        }
-        50% {
-            box-shadow:
-                0 0 40px rgba(0,212,255,0.5),
-                0 0 100px rgba(0,212,255,0.15);
-        }
-    }
-
-    @keyframes fade-up {
-        from { opacity: 0; transform: translateY(24px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes cube-spin {
-        0% { transform: perspective(300px) rotateX(15deg) rotateY(0deg) rotateZ(5deg); }
-        100% { transform: perspective(300px) rotateX(15deg) rotateY(360deg) rotateZ(5deg); }
-    }
-
-    @keyframes ring-tilt {
-        0%, 100% { transform: perspective(300px) rotateX(70deg) rotateZ(0deg); }
-        50% { transform: perspective(300px) rotateX(60deg) rotateZ(20deg); }
+        --cream: #fff8ef;
+        --cream-2: #fdf1df;
+        --card: rgba(255, 255, 255, 0.86);
+        --card-strong: rgba(255, 255, 255, 0.94);
+        --red: #b11226;
+        --green: #006233;
+        --blue: #1f6feb;
+        --gold: #d4af37;
+        --text: #2d1810;
+        --muted: #70584a;
+        --line: rgba(212, 175, 55, 0.35);
+        --shadow: rgba(93, 64, 55, 0.12);
     }
 
     html, body, [class*="css"] {
-        font-family: 'Sora', 'Noto Kufi Arabic', sans-serif !important;
+        font-family: 'Noto Kufi Arabic', 'Tajawal', sans-serif !important;
         direction: rtl;
         text-align: right;
     }
 
     .stApp {
-        background: var(--deep-navy);
-        color: var(--text-white);
+        color: var(--text);
+        background-color: var(--cream);
+        background-image:
+            radial-gradient(circle at 25% 25%, rgba(177, 18, 38, 0.08) 0 2px, transparent 3px),
+            radial-gradient(circle at 75% 75%, rgba(0, 98, 51, 0.08) 0 2px, transparent 3px),
+            linear-gradient(45deg, rgba(212, 175, 55, 0.08) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(31, 111, 235, 0.055) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(0, 98, 51, 0.055) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(177, 18, 38, 0.05) 75%),
+            linear-gradient(135deg, #fff8ef 0%, #fdf1df 45%, #fffaf5 100%);
+        background-position:
+            0 0,
+            24px 24px,
+            0 0,
+            0 0,
+            24px 24px,
+            24px 24px,
+            0 0;
+        background-size:
+            48px 48px,
+            48px 48px,
+            48px 48px,
+            48px 48px,
+            48px 48px,
+            48px 48px,
+            100% 100%;
         min-height: 100vh;
-        position: relative;
-        overflow-x: hidden;
     }
 
     .stApp::before {
         content: "";
         position: fixed;
         inset: 0;
-        background-image:
-            linear-gradient(rgba(0,212,255,0.035) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,212,255,0.035) 1px, transparent 1px);
-        background-size: 55px 55px;
-        animation: grid-scroll 10s linear infinite;
         pointer-events: none;
         z-index: 0;
+        background:
+            radial-gradient(circle at top right, rgba(0, 98, 51, 0.13), transparent 34%),
+            radial-gradient(circle at bottom left, rgba(177, 18, 38, 0.12), transparent 36%);
+        opacity: 0.9;
     }
 
     .stApp::after {
         content: "";
         position: fixed;
-        top: -15%;
-        right: -8%;
-        width: 700px;
-        height: 700px;
-        background: radial-gradient(circle at 40% 40%,
-            rgba(26,107,255,0.16) 0%,
-            rgba(0,212,255,0.07) 45%,
-            transparent 70%);
-        border-radius: 50%;
-        animation: orb-pulse 8s ease-in-out infinite;
+        inset: 0;
         pointer-events: none;
         z-index: 0;
+        background-image:
+            linear-gradient(30deg, transparent 47%, rgba(212, 175, 55, 0.10) 48%, rgba(212, 175, 55, 0.10) 52%, transparent 53%),
+            linear-gradient(150deg, transparent 47%, rgba(0, 98, 51, 0.07) 48%, rgba(0, 98, 51, 0.07) 52%, transparent 53%);
+        background-size: 96px 96px;
+        opacity: 0.55;
     }
 
     .block-container {
-        max-width: 900px;
-        padding-top: 2rem;
+        max-width: 920px;
+        padding-top: 1.5rem;
         padding-bottom: 3rem;
         position: relative;
         z-index: 1;
-        animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
     }
 
     .moroccan-hero {
-        position: relative;
-        background: linear-gradient(135deg,
-            rgba(8,18,45,0.97) 0%,
-            rgba(4,12,30,0.99) 100%);
-        border: 1px solid rgba(0,212,255,0.2);
+        background:
+            linear-gradient(135deg, rgba(177, 18, 38, 0.93) 0%, rgba(0, 98, 51, 0.92) 100%);
+        color: white;
         border-radius: 28px;
-        padding: 3rem 2.5rem 2.8rem;
-        margin-bottom: 2rem;
+        padding: 2.3rem 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 18px 45px rgba(93, 64, 55, 0.22);
+        border: 3px solid rgba(212, 175, 55, 0.75);
+        position: relative;
         overflow: hidden;
-        animation: glow-pulse 5s ease-in-out infinite;
     }
 
     .moroccan-hero::before {
         content: "";
         position: absolute;
-        top: -50px;
-        left: -50px;
-        width: 180px;
-        height: 180px;
-        background: linear-gradient(135deg,
-            rgba(212,25,44,0.35) 0%,
-            rgba(212,25,44,0.1) 100%);
-        border-radius: 28px;
-        transform: perspective(300px) rotateX(20deg) rotateY(-25deg) rotateZ(15deg);
-        filter: blur(0.5px);
-        animation: float3d 7s ease-in-out infinite;
-    }
-
-    .moroccan-hero::after {
-        content: "";
-        position: absolute;
-        bottom: -30px;
-        right: -30px;
-        width: 140px;
-        height: 140px;
-        background: linear-gradient(135deg,
-            rgba(26,107,255,0.45),
-            rgba(0,212,255,0.2));
-        border-radius: 20px;
-        transform: perspective(300px) rotateX(-20deg) rotateY(30deg) rotateZ(-10deg);
-        filter: blur(1px);
-        animation: float3d 9s ease-in-out infinite 2s;
-    }
-
-    .hero-top-bar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg,
-            var(--red-morocco) 0%,
-            var(--gold-bright) 33%,
-            var(--green-morocco) 66%,
-            var(--cyan-glow) 100%);
-        background-size: 300% 100%;
-        animation: shimmer 4s linear infinite;
+        inset: 0;
+        background-image:
+            linear-gradient(45deg, rgba(255,255,255,0.10) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(255,255,255,0.09) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.08) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.07) 75%);
+        background-size: 42px 42px;
+        background-position: 0 0, 0 0, 21px 21px, 21px 21px;
+        opacity: 0.45;
     }
 
     .moroccan-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: linear-gradient(135deg,
-            rgba(255,200,50,0.12),
-            rgba(255,200,50,0.04));
-        border: 1px solid rgba(255,200,50,0.3);
-        color: var(--gold-bright);
-        padding: 8px 20px;
+        background: rgba(255, 255, 255, 0.18);
+        color: #ffe9a6;
+        padding: 8px 18px;
         border-radius: 999px;
-        font-weight: 700;
+        font-weight: 800;
         font-size: 13px;
-        margin-bottom: 20px;
-        backdrop-filter: blur(10px);
+        margin-bottom: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
         position: relative;
         z-index: 1;
     }
 
     .moroccan-hero h1 {
-        font-size: clamp(26px, 5vw, 44px);
-        font-weight: 800;
-        line-height: 1.2;
-        margin-bottom: 16px;
-        background: linear-gradient(135deg,
-            #ffffff 0%,
-            var(--cyan-glow) 55%,
-            var(--gold-bright) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        font-size: clamp(30px, 6vw, 48px);
+        font-weight: 900;
+        line-height: 1.25;
+        margin: 0 0 14px;
         position: relative;
         z-index: 1;
+        color: white;
     }
 
     .moroccan-hero p {
-        font-size: 15px;
+        font-size: 16px;
         line-height: 2;
-        color: rgba(136,153,187,0.9);
-        max-width: 680px;
+        color: #fff8e8;
+        margin: 0;
+        max-width: 720px;
         position: relative;
         z-index: 1;
     }
 
-    .section-card {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(0,212,255,0.18);
-        border-radius: 20px;
-        padding: 24px 28px;
+    .section-card,
+    .teacher-card,
+    .danger-card,
+    .welcome-card {
+        background: var(--card);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 2px solid var(--line);
+        border-radius: 24px;
+        padding: 24px;
         margin: 20px 0;
+        box-shadow: 0 12px 32px var(--shadow);
         position: relative;
         overflow: hidden;
-        backdrop-filter: blur(20px);
-        transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .section-card::before {
+    .section-card::before,
+    .teacher-card::before,
+    .danger-card::before,
+    .welcome-card::before {
         content: "";
         position: absolute;
         top: 0;
-        left: 0;
         right: 0;
-        height: 2px;
-        background: linear-gradient(90deg,
-            var(--electric-blue),
-            var(--cyan-glow) 50%,
-            var(--gold-bright));
-        background-size: 200% 100%;
-        animation: shimmer 5s linear infinite;
-    }
-
-    .section-card::after {
-        content: "◆";
-        position: absolute;
-        bottom: 14px;
-        left: 18px;
-        font-size: 28px;
-        color: rgba(0,212,255,0.06);
-        transform: perspective(120px) rotateY(35deg) rotateX(25deg);
-        pointer-events: none;
-    }
-
-    .section-card:hover {
-        border-color: rgba(0,212,255,0.38);
-        background: rgba(255,255,255,0.055);
-        transform: translateY(-3px);
-        box-shadow:
-            0 20px 50px rgba(0,0,0,0.35),
-            0 0 30px rgba(0,212,255,0.12);
+        left: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--red), var(--gold), var(--green), var(--blue));
     }
 
     .section-title {
-        font-size: 22px;
-        font-weight: 800;
+        color: var(--red);
+        font-size: 24px;
+        font-weight: 900;
         margin-bottom: 10px;
-        background: linear-gradient(90deg, #ffffff 30%, var(--cyan-glow));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
     }
 
     .small-note {
-        color: var(--text-muted);
+        color: var(--muted);
         font-size: 15px;
         line-height: 1.9;
+    }
+
+    .teacher-card {
+        border-color: rgba(0, 98, 51, 0.30);
+    }
+
+    .teacher-title {
+        color: var(--green);
+        font-size: 22px;
+        font-weight: 900;
+        margin-bottom: 8px;
+    }
+
+    .danger-card {
+        border-color: rgba(177, 18, 38, 0.28);
+        background: rgba(255, 247, 244, 0.88);
+    }
+
+    .danger-title {
+        color: var(--red);
+        font-size: 22px;
+        font-weight: 900;
+        margin-bottom: 8px;
+    }
+
+    .welcome-name {
+        color: var(--green);
+        font-size: 23px;
+        font-weight: 900;
+    }
+
+    .welcome-role {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 5px;
     }
 
     div[data-testid="stSelectbox"] label,
@@ -321,76 +259,54 @@ st.markdown(
     div[data-testid="stRadio"] label,
     div[data-testid="stCheckbox"] label,
     div[data-testid="stFileUploader"] label {
-        color: var(--cyan-glow) !important;
-        font-weight: 700 !important;
-        font-size: 15px !important;
-        letter-spacing: 0.3px !important;
+        color: #5a1f1f !important;
+        font-weight: 800 !important;
+        font-size: 16px !important;
     }
 
     textarea,
     input,
     div[data-baseweb="select"] > div {
-        background: rgba(0,20,60,0.5) !important;
-        border: 1px solid rgba(0,212,255,0.18) !important;
-        border-radius: 14px !important;
-        color: var(--text-white) !important;
-        transition: all 0.3s ease !important;
+        background: rgba(255, 253, 247, 0.96) !important;
+        border: 2px solid rgba(212, 175, 55, 0.32) !important;
+        border-radius: 16px !important;
+        color: var(--text) !important;
     }
 
     textarea:focus,
     input:focus {
-        border-color: var(--cyan-glow) !important;
-        box-shadow:
-            0 0 0 2px rgba(0,212,255,0.15),
-            0 0 25px rgba(0,212,255,0.15) !important;
+        border-color: var(--green) !important;
+        box-shadow: 0 0 0 4px rgba(0, 98, 51, 0.12) !important;
         outline: none !important;
     }
 
     .stButton > button {
-        background: linear-gradient(160deg,
-            #2a7fff 0%,
-            #1a6bff 35%,
-            #0050cc 70%,
-            #003a99 100%) !important;
+        background: linear-gradient(135deg, var(--red) 0%, var(--green) 100%) !important;
         color: white !important;
-        border: 1px solid rgba(0,212,255,0.35) !important;
-        border-radius: 16px !important;
-        padding: 0.85rem 1.5rem !important;
-        font-size: 16px !important;
-        font-weight: 700 !important;
+        border: none !important;
+        border-radius: 18px !important;
+        padding: 0.8rem 1.3rem !important;
+        font-size: 17px !important;
+        font-weight: 800 !important;
         width: 100% !important;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-        box-shadow:
-            0 8px 30px rgba(26,107,255,0.4),
-            0 2px 0 rgba(255,255,255,0.12) inset,
-            0 -4px 0 rgba(0,0,0,0.35) inset !important;
-        letter-spacing: 0.3px !important;
+        box-shadow: 0 10px 25px rgba(177, 18, 38, 0.22) !important;
+        transition: all 0.25s ease !important;
     }
 
     .stButton > button:hover {
-        transform: perspective(600px) translateZ(10px) translateY(-4px) !important;
-        box-shadow:
-            0 20px 50px rgba(26,107,255,0.55),
-            0 2px 0 rgba(255,255,255,0.15) inset,
-            0 -4px 0 rgba(0,0,0,0.35) inset !important;
-        border-color: var(--cyan-glow) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 14px 32px rgba(0, 98, 51, 0.25) !important;
+        color: #fff8da !important;
     }
 
     div[role="radiogroup"] label,
     div[data-testid="stRadio"] label {
-        background: rgba(0,20,55,0.6) !important;
-        border: 1px solid rgba(0,212,255,0.15) !important;
-        border-radius: 12px !important;
-        padding: 10px 16px !important;
+        background: rgba(255, 255, 255, 0.88) !important;
+        border: 2px solid rgba(212, 175, 55, 0.30) !important;
+        border-radius: 14px !important;
+        padding: 10px 14px !important;
         margin-bottom: 8px !important;
-        color: var(--text-white) !important;
-        transition: all 0.25s ease !important;
-    }
-
-    div[role="radiogroup"] label:hover {
-        border-color: var(--cyan-glow) !important;
-        background: rgba(0,40,100,0.5) !important;
-        transform: translateX(-2px);
+        color: var(--text) !important;
     }
 
     div[role="radiogroup"] label *,
@@ -400,270 +316,92 @@ st.markdown(
     div[data-testid="stCheckbox"] label *,
     div[data-testid="stCheckbox"] span,
     div[data-testid="stCheckbox"] p {
-        color: var(--text-white) !important;
+        color: var(--text) !important;
         opacity: 1 !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
     }
 
     div[data-testid="stAlert"] {
-        border-radius: 14px !important;
-        background: rgba(0,20,55,0.6) !important;
-        border: 1px solid rgba(0,212,255,0.2) !important;
+        border-radius: 18px !important;
     }
 
     div[data-testid="stExpander"] {
-        background: rgba(0,15,40,0.7) !important;
-        border: 1px solid rgba(0,212,255,0.15) !important;
-        border-radius: 16px !important;
+        background: rgba(255, 255, 255, 0.88) !important;
+        border: 2px solid rgba(212, 175, 55, 0.26) !important;
+        border-radius: 18px !important;
         overflow: hidden !important;
-        margin: 10px 0 !important;
-    }
-
-    div[data-testid="stExpander"]:hover {
-        border-color: rgba(0,212,255,0.3) !important;
+        margin: 12px 0 !important;
     }
 
     div[data-testid="stVerticalBlockBorderWrapper"] > div {
-        background: rgba(0,15,40,0.7) !important;
-        border: 1px solid rgba(0,212,255,0.15) !important;
-        border-radius: 18px !important;
-        overflow: hidden !important;
-        transition: all 0.3s ease !important;
-    }
-
-    div[data-testid="stVerticalBlockBorderWrapper"] > div:hover {
-        border-color: rgba(0,212,255,0.3) !important;
-        box-shadow:
-            0 10px 35px rgba(0,0,0,0.4),
-            0 0 20px rgba(0,212,255,0.08) !important;
-    }
-
-    .danger-card {
-        background: linear-gradient(135deg,
-            rgba(212,25,44,0.09),
-            rgba(212,25,44,0.03));
-        border: 1px solid rgba(212,25,44,0.28);
-        border-radius: 18px;
-        padding: 22px;
-        margin: 20px 0;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .danger-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, #ff1a3a, rgba(212,25,44,0.3), transparent);
-    }
-
-    .danger-title {
-        color: #ff4d6d;
-        font-size: 20px;
-        font-weight: 800;
-        margin-bottom: 8px;
-    }
-
-    .teacher-card {
-        background: linear-gradient(135deg,
-            rgba(0,122,61,0.1),
-            rgba(0,122,61,0.03));
-        border: 1px solid rgba(0,122,61,0.28);
-        border-radius: 18px;
-        padding: 22px;
-        margin: 20px 0;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .teacher-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg,
-            var(--green-morocco),
-            var(--cyan-glow) 60%,
-            transparent);
-    }
-
-    .teacher-title {
-        color: #00e07a;
-        font-size: 20px;
-        font-weight: 800;
-        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.88) !important;
+        border: 2px solid rgba(212, 175, 55, 0.25) !important;
+        border-radius: 20px !important;
     }
 
     .code-box {
-        background: linear-gradient(135deg,
-            rgba(0,212,255,0.08),
-            rgba(26,107,255,0.05));
-        border: 1px solid rgba(0,212,255,0.3);
-        border-radius: 18px;
-        padding: 24px;
-        text-align: center;
-        font-size: 32px;
-        font-weight: 900;
-        color: var(--cyan-glow);
-        letter-spacing: 10px;
-        margin: 16px 0;
-        position: relative;
-        overflow: hidden;
-        text-shadow:
-            0 0 20px rgba(0,212,255,0.8),
-            0 0 40px rgba(0,212,255,0.3);
-        box-shadow:
-            0 0 0 1px rgba(0,212,255,0.1),
-            0 10px 40px rgba(0,212,255,0.12),
-            inset 0 1px 0 rgba(255,255,255,0.06),
-            inset 0 -2px 0 rgba(0,0,0,0.2);
-        animation: glow-pulse 3s ease-in-out infinite;
-        transform: perspective(500px) rotateX(2deg);
-    }
-
-    .welcome-card {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        background: linear-gradient(135deg,
-            rgba(255,200,50,0.06),
-            rgba(255,200,50,0.02));
-        border: 1px solid rgba(255,200,50,0.25);
+        background: rgba(255, 253, 247, 0.96);
+        border: 2px dashed var(--gold);
         border-radius: 20px;
-        padding: 20px 24px;
-        margin: 20px 0;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .welcome-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg,
-            var(--gold-bright) 0%,
-            rgba(255,200,50,0.4) 60%,
-            transparent);
-    }
-
-    .welcome-name {
-        font-size: 22px;
-        font-weight: 800;
-        background: linear-gradient(90deg, var(--gold-bright), #ffe88a);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .welcome-role {
-        color: var(--text-muted);
-        font-size: 14px;
-        margin-top: 4px;
-    }
-
-    div[data-baseweb="select"] svg {
-        color: var(--cyan-glow) !important;
+        padding: 20px;
+        text-align: center;
+        font-size: 28px;
+        font-weight: 900;
+        color: var(--red);
+        letter-spacing: 6px;
+        margin: 16px 0;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
     }
 
     .stImage img {
-        border-radius: 16px;
-        border: 1px solid rgba(0,212,255,0.2);
-        box-shadow:
-            0 15px 50px rgba(0,0,0,0.5),
-            0 0 20px rgba(0,212,255,0.08);
+        border-radius: 18px;
+        border: 2px solid rgba(212, 175, 55, 0.35);
+        box-shadow: 0 14px 35px rgba(93, 64, 55, 0.16);
     }
 
     div[data-testid="stFileUploader"] {
-        background: rgba(0,15,40,0.6) !important;
-        border: 2px dashed rgba(0,212,255,0.25) !important;
-        border-radius: 16px !important;
-        transition: all 0.3s ease !important;
-    }
-
-    div[data-testid="stFileUploader"]:hover {
-        border-color: rgba(0,212,255,0.5) !important;
-        background: rgba(0,25,60,0.7) !important;
+        background: rgba(255, 253, 247, 0.90) !important;
+        border: 2px dashed rgba(0, 98, 51, 0.35) !important;
+        border-radius: 18px !important;
     }
 
     .stMarkdown p {
-        color: rgba(220,230,255,0.9);
+        color: var(--text);
         line-height: 1.9;
     }
 
     .stMarkdown h1,
     .stMarkdown h2,
     .stMarkdown h3 {
-        color: var(--text-white);
+        color: var(--text);
     }
 
     .stCaption {
-        color: var(--text-muted) !important;
-    }
-
-    ::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: var(--deep-navy);
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: rgba(0,212,255,0.28);
-        border-radius: 3px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: var(--cyan-glow);
+        color: var(--muted) !important;
     }
 
     .footer {
         text-align: center;
-        color: var(--text-muted);
+        color: #7a5b2e;
         font-size: 14px;
-        margin-top: 50px;
-        padding: 28px;
-        background: rgba(255,255,255,0.025);
-        border-radius: 20px;
-        border: 1px solid rgba(0,212,255,0.1);
+        margin-top: 40px;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.76);
+        border-radius: 22px;
+        border: 2px solid rgba(212, 175, 55, 0.28);
         line-height: 2;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .footer::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg,
-            var(--red-morocco) 0%,
-            var(--gold-bright) 33%,
-            var(--green-morocco) 66%,
-            var(--electric-blue) 100%);
+        box-shadow: 0 10px 26px rgba(93, 64, 55, 0.10);
     }
 
     .footer strong {
-        color: var(--text-white);
-        font-weight: 700;
+        color: var(--green);
+        font-weight: 900;
     }
 
     .footer-icons {
-        font-size: 22px;
-        margin-bottom: 12px;
-        letter-spacing: 10px;
-        filter: drop-shadow(0 0 8px rgba(0,212,255,0.4));
+        font-size: 24px;
+        margin-bottom: 10px;
+        letter-spacing: 8px;
     }
 
     @media (max-width: 768px) {
@@ -672,96 +410,40 @@ st.markdown(
         }
 
         .moroccan-hero {
-            padding: 2rem 1.4rem;
-            border-radius: 22px;
+            padding: 2rem 1.25rem;
+            border-radius: 24px;
         }
 
-        .section-card {
+        .section-card,
+        .teacher-card,
+        .danger-card,
+        .welcome-card {
             padding: 18px;
-            border-radius: 18px;
+            border-radius: 20px;
         }
 
         .code-box {
             font-size: 24px;
-            letter-spacing: 6px;
+            letter-spacing: 4px;
         }
     }
     </style>
-
-    <div style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;">
-        <div style="
-            position:absolute;top:12%;right:3%;
-            width:70px;height:70px;
-            background:linear-gradient(135deg,rgba(26,107,255,0.18),rgba(0,212,255,0.08));
-            border-radius:12px;
-            border:1px solid rgba(0,212,255,0.15);
-            animation:cube-spin 12s linear infinite;
-            box-shadow:0 0 20px rgba(0,212,255,0.1);
-        "></div>
-
-        <div style="
-            position:absolute;top:52%;right:6%;
-            width:90px;height:90px;
-            border:10px solid rgba(0,212,255,0.12);
-            border-radius:50%;
-            box-shadow:0 0 25px rgba(0,212,255,0.08),inset 0 0 15px rgba(0,212,255,0.05);
-            animation:ring-tilt 8s ease-in-out infinite;
-        "></div>
-
-        <div style="
-            position:absolute;top:25%;left:2%;
-            width:0;height:0;
-            border-left:35px solid transparent;
-            border-right:35px solid transparent;
-            border-bottom:62px solid rgba(255,200,50,0.09);
-            filter:drop-shadow(0 0 10px rgba(255,200,50,0.15));
-            animation:float3d 11s ease-in-out infinite 3s;
-        "></div>
-
-        <div style="
-            position:absolute;top:75%;left:4%;
-            width:45px;height:45px;
-            background:linear-gradient(135deg,rgba(212,25,44,0.14),rgba(212,25,44,0.04));
-            border-radius:8px;
-            border:1px solid rgba(212,25,44,0.12);
-            animation:float3d 9s ease-in-out infinite 1s;
-        "></div>
-
-        <div style="
-            position:absolute;top:82%;right:10%;
-            width:55px;height:55px;
-            border:7px solid rgba(0,122,61,0.15);
-            border-radius:50%;
-            animation:ring-tilt 10s ease-in-out infinite 4s;
-            box-shadow:0 0 15px rgba(0,122,61,0.1);
-        "></div>
-
-        <div style="
-            position:fixed;bottom:-10%;left:-8%;
-            width:500px;height:500px;
-            background:radial-gradient(circle,rgba(0,122,61,0.1) 0%,transparent 65%);
-            border-radius:50%;
-            animation:orb-pulse 10s ease-in-out infinite 3s;
-            pointer-events:none;
-        "></div>
-    </div>
     """,
     unsafe_allow_html=True
 )
 
 
 # =========================
-# الهيدر الجديد
+# الهيدر
 # =========================
 st.markdown(
     """
     <div class="moroccan-hero">
-        <div class="hero-top-bar"></div>
         <div class="moroccan-badge">🇲🇦 Soutien Scolaire Intelligent</div>
         <h1>📚 منصة الدعم الذكي</h1>
         <p>
-            واجهة تعليمية عصرية للتلاميذ والأساتذة في المغرب:
-            شرح الدروس، حل التمارين بالصور، Quiz، دردشة القسم، وتتبع النتائج بطريقة بسيطة وجميلة.
+            منصة دعم مدرسية بواجهة بسيطة وخلفية مستوحاة من الزليج المغربي:
+            شرح الدروس، حل التمارين بالصور، Quiz، دردشة القسم، وتتبع النتائج.
         </p>
     </div>
     """,
@@ -2028,13 +1710,12 @@ if st.session_state.account is None:
 account = st.session_state.account
 account_type = st.session_state.account_type
 name_safe = html.escape(account["name"])
+role_label = "أستاذ" if account_type == "teacher" else "تلميذ"
 
 
 # =========================
 # شريط الحساب
 # =========================
-role_label = "أستاذ" if account_type == "teacher" else "تلميذ"
-
 st.markdown(
     f"""
     <div class="welcome-card">
