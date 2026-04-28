@@ -16,13 +16,13 @@ from supabase import create_client
 # =========================
 st.set_page_config(
     page_title="منصة الدعم الذكي",
-    page_icon="🇲🇦",
+    page_icon="📚",
     layout="centered"
 )
 
 
 # =========================
-# CSS تصميم زليج مغربي باهت
+# تصميم أبيض بسيط ومريح للقراءة
 # =========================
 st.markdown(
     """
@@ -30,18 +30,17 @@ st.markdown(
     @import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
 
     :root {
-        --cream: #fff8ef;
-        --cream-2: #fdf1df;
-        --card: rgba(255, 255, 255, 0.86);
-        --card-strong: rgba(255, 255, 255, 0.94);
+        --bg: #ffffff;
+        --soft-bg: #f7f9fc;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #667085;
         --red: #b11226;
         --green: #006233;
-        --blue: #1f6feb;
+        --blue: #2563eb;
         --gold: #d4af37;
-        --text: #2d1810;
-        --muted: #70584a;
-        --line: rgba(212, 175, 55, 0.35);
-        --shadow: rgba(93, 64, 55, 0.12);
+        --border: #e5e7eb;
+        --shadow: rgba(17, 24, 39, 0.08);
     }
 
     html, body, [class*="css"] {
@@ -51,129 +50,53 @@ st.markdown(
     }
 
     .stApp {
+        background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
         color: var(--text);
-        background-color: var(--cream);
-        background-image:
-            radial-gradient(circle at 25% 25%, rgba(177, 18, 38, 0.08) 0 2px, transparent 3px),
-            radial-gradient(circle at 75% 75%, rgba(0, 98, 51, 0.08) 0 2px, transparent 3px),
-            linear-gradient(45deg, rgba(212, 175, 55, 0.08) 25%, transparent 25%),
-            linear-gradient(-45deg, rgba(31, 111, 235, 0.055) 25%, transparent 25%),
-            linear-gradient(45deg, transparent 75%, rgba(0, 98, 51, 0.055) 75%),
-            linear-gradient(-45deg, transparent 75%, rgba(177, 18, 38, 0.05) 75%),
-            linear-gradient(135deg, #fff8ef 0%, #fdf1df 45%, #fffaf5 100%);
-        background-position:
-            0 0,
-            24px 24px,
-            0 0,
-            0 0,
-            24px 24px,
-            24px 24px,
-            0 0;
-        background-size:
-            48px 48px,
-            48px 48px,
-            48px 48px,
-            48px 48px,
-            48px 48px,
-            48px 48px,
-            100% 100%;
-        min-height: 100vh;
-    }
-
-    .stApp::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 0;
-        background:
-            radial-gradient(circle at top right, rgba(0, 98, 51, 0.13), transparent 34%),
-            radial-gradient(circle at bottom left, rgba(177, 18, 38, 0.12), transparent 36%);
-        opacity: 0.9;
-    }
-
-    .stApp::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 0;
-        background-image:
-            linear-gradient(30deg, transparent 47%, rgba(212, 175, 55, 0.10) 48%, rgba(212, 175, 55, 0.10) 52%, transparent 53%),
-            linear-gradient(150deg, transparent 47%, rgba(0, 98, 51, 0.07) 48%, rgba(0, 98, 51, 0.07) 52%, transparent 53%);
-        background-size: 96px 96px;
-        opacity: 0.55;
     }
 
     .block-container {
         max-width: 920px;
         padding-top: 1.5rem;
         padding-bottom: 3rem;
-        position: relative;
-        z-index: 1;
     }
 
-    .moroccan-hero {
-        background:
-            linear-gradient(135deg, rgba(177, 18, 38, 0.93) 0%, rgba(0, 98, 51, 0.92) 100%);
-        color: white;
-        border-radius: 28px;
-        padding: 2.3rem 2rem;
+    .hero {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 2px solid var(--border);
+        border-top: 5px solid var(--green);
+        border-radius: 26px;
+        padding: 2.2rem 1.6rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 18px 45px rgba(93, 64, 55, 0.22);
-        border: 3px solid rgba(212, 175, 55, 0.75);
-        position: relative;
-        overflow: hidden;
+        box-shadow: 0 12px 30px var(--shadow);
     }
 
-    .moroccan-hero::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-image:
-            linear-gradient(45deg, rgba(255,255,255,0.10) 25%, transparent 25%),
-            linear-gradient(-45deg, rgba(255,255,255,0.09) 25%, transparent 25%),
-            linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.08) 75%),
-            linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.07) 75%);
-        background-size: 42px 42px;
-        background-position: 0 0, 0 0, 21px 21px, 21px 21px;
-        opacity: 0.45;
-    }
-
-    .moroccan-badge {
+    .hero-badge {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: rgba(255, 255, 255, 0.18);
-        color: #ffe9a6;
-        padding: 8px 18px;
+        background: #ecfdf3;
+        color: var(--green);
+        padding: 8px 16px;
         border-radius: 999px;
         font-weight: 800;
         font-size: 13px;
-        margin-bottom: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        position: relative;
-        z-index: 1;
+        margin-bottom: 14px;
+        border: 1px solid #bbf7d0;
     }
 
-    .moroccan-hero h1 {
-        font-size: clamp(30px, 6vw, 48px);
+    .hero h1 {
+        font-size: clamp(30px, 6vw, 46px);
         font-weight: 900;
-        line-height: 1.25;
-        margin: 0 0 14px;
-        position: relative;
-        z-index: 1;
-        color: white;
+        color: var(--text);
+        margin: 0 0 12px;
+        line-height: 1.3;
     }
 
-    .moroccan-hero p {
+    .hero p {
+        color: var(--muted);
         font-size: 16px;
         line-height: 2;
-        color: #fff8e8;
         margin: 0;
-        max-width: 720px;
-        position: relative;
-        z-index: 1;
     }
 
     .section-card,
@@ -181,45 +104,35 @@ st.markdown(
     .danger-card,
     .welcome-card {
         background: var(--card);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 2px solid var(--line);
-        border-radius: 24px;
-        padding: 24px;
-        margin: 20px 0;
-        box-shadow: 0 12px 32px var(--shadow);
-        position: relative;
-        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 22px;
+        margin: 18px 0;
+        box-shadow: 0 8px 24px var(--shadow);
     }
 
-    .section-card::before,
-    .teacher-card::before,
-    .danger-card::before,
-    .welcome-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        right: 0;
-        left: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--red), var(--gold), var(--green), var(--blue));
-    }
-
-    .section-title {
-        color: var(--red);
-        font-size: 24px;
-        font-weight: 900;
-        margin-bottom: 10px;
-    }
-
-    .small-note {
-        color: var(--muted);
-        font-size: 15px;
-        line-height: 1.9;
+    .section-card {
+        border-top: 4px solid var(--blue);
     }
 
     .teacher-card {
-        border-color: rgba(0, 98, 51, 0.30);
+        border-top: 4px solid var(--green);
+    }
+
+    .danger-card {
+        border-top: 4px solid var(--red);
+        background: #fffafa;
+    }
+
+    .welcome-card {
+        border-top: 4px solid var(--gold);
+    }
+
+    .section-title {
+        color: var(--blue);
+        font-size: 23px;
+        font-weight: 900;
+        margin-bottom: 10px;
     }
 
     .teacher-title {
@@ -229,16 +142,17 @@ st.markdown(
         margin-bottom: 8px;
     }
 
-    .danger-card {
-        border-color: rgba(177, 18, 38, 0.28);
-        background: rgba(255, 247, 244, 0.88);
-    }
-
     .danger-title {
         color: var(--red);
         font-size: 22px;
         font-weight: 900;
         margin-bottom: 8px;
+    }
+
+    .small-note {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.9;
     }
 
     .welcome-name {
@@ -259,7 +173,7 @@ st.markdown(
     div[data-testid="stRadio"] label,
     div[data-testid="stCheckbox"] label,
     div[data-testid="stFileUploader"] label {
-        color: #5a1f1f !important;
+        color: var(--text) !important;
         font-weight: 800 !important;
         font-size: 16px !important;
     }
@@ -267,42 +181,40 @@ st.markdown(
     textarea,
     input,
     div[data-baseweb="select"] > div {
-        background: rgba(255, 253, 247, 0.96) !important;
-        border: 2px solid rgba(212, 175, 55, 0.32) !important;
-        border-radius: 16px !important;
+        background: #ffffff !important;
+        border: 2px solid #e5e7eb !important;
+        border-radius: 14px !important;
         color: var(--text) !important;
     }
 
     textarea:focus,
     input:focus {
-        border-color: var(--green) !important;
-        box-shadow: 0 0 0 4px rgba(0, 98, 51, 0.12) !important;
+        border-color: var(--blue) !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12) !important;
         outline: none !important;
     }
 
     .stButton > button {
-        background: linear-gradient(135deg, var(--red) 0%, var(--green) 100%) !important;
+        background: linear-gradient(135deg, var(--blue) 0%, var(--green) 100%) !important;
         color: white !important;
         border: none !important;
-        border-radius: 18px !important;
+        border-radius: 16px !important;
         padding: 0.8rem 1.3rem !important;
         font-size: 17px !important;
         font-weight: 800 !important;
         width: 100% !important;
-        box-shadow: 0 10px 25px rgba(177, 18, 38, 0.22) !important;
-        transition: all 0.25s ease !important;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18) !important;
     }
 
     .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 32px rgba(0, 98, 51, 0.25) !important;
-        color: #fff8da !important;
+        transform: translateY(-1px);
+        color: #fffbe8 !important;
     }
 
     div[role="radiogroup"] label,
     div[data-testid="stRadio"] label {
-        background: rgba(255, 255, 255, 0.88) !important;
-        border: 2px solid rgba(212, 175, 55, 0.30) !important;
+        background: #ffffff !important;
+        border: 2px solid #e5e7eb !important;
         border-radius: 14px !important;
         padding: 10px 14px !important;
         margin-bottom: 8px !important;
@@ -322,47 +234,47 @@ st.markdown(
     }
 
     div[data-testid="stAlert"] {
-        border-radius: 18px !important;
+        border-radius: 16px !important;
     }
 
     div[data-testid="stExpander"] {
-        background: rgba(255, 255, 255, 0.88) !important;
-        border: 2px solid rgba(212, 175, 55, 0.26) !important;
-        border-radius: 18px !important;
+        background: #ffffff !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 16px !important;
         overflow: hidden !important;
         margin: 12px 0 !important;
     }
 
     div[data-testid="stVerticalBlockBorderWrapper"] > div {
-        background: rgba(255, 255, 255, 0.88) !important;
-        border: 2px solid rgba(212, 175, 55, 0.25) !important;
-        border-radius: 20px !important;
+        background: #ffffff !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 4px 14px rgba(17, 24, 39, 0.04);
     }
 
     .code-box {
-        background: rgba(255, 253, 247, 0.96);
+        background: #f8fafc;
         border: 2px dashed var(--gold);
-        border-radius: 20px;
-        padding: 20px;
+        border-radius: 18px;
+        padding: 18px;
         text-align: center;
         font-size: 28px;
         font-weight: 900;
         color: var(--red);
         letter-spacing: 6px;
         margin: 16px 0;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
     }
 
     .stImage img {
-        border-radius: 18px;
-        border: 2px solid rgba(212, 175, 55, 0.35);
-        box-shadow: 0 14px 35px rgba(93, 64, 55, 0.16);
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        box-shadow: 0 8px 20px var(--shadow);
     }
 
     div[data-testid="stFileUploader"] {
-        background: rgba(255, 253, 247, 0.90) !important;
-        border: 2px dashed rgba(0, 98, 51, 0.35) !important;
-        border-radius: 18px !important;
+        background: #ffffff !important;
+        border: 2px dashed #cbd5e1 !important;
+        border-radius: 16px !important;
     }
 
     .stMarkdown p {
@@ -382,15 +294,15 @@ st.markdown(
 
     .footer {
         text-align: center;
-        color: #7a5b2e;
+        color: var(--muted);
         font-size: 14px;
         margin-top: 40px;
         padding: 24px;
-        background: rgba(255, 255, 255, 0.76);
-        border-radius: 22px;
-        border: 2px solid rgba(212, 175, 55, 0.28);
+        background: #ffffff;
+        border-radius: 20px;
+        border: 1px solid var(--border);
         line-height: 2;
-        box-shadow: 0 10px 26px rgba(93, 64, 55, 0.10);
+        box-shadow: 0 8px 22px var(--shadow);
     }
 
     .footer strong {
@@ -409,21 +321,21 @@ st.markdown(
             padding: 1rem;
         }
 
-        .moroccan-hero {
-            padding: 2rem 1.25rem;
-            border-radius: 24px;
+        .hero {
+            padding: 1.8rem 1.2rem;
+            border-radius: 22px;
         }
 
         .section-card,
         .teacher-card,
         .danger-card,
         .welcome-card {
-            padding: 18px;
-            border-radius: 20px;
+            padding: 17px;
+            border-radius: 18px;
         }
 
         .code-box {
-            font-size: 24px;
+            font-size: 23px;
             letter-spacing: 4px;
         }
     }
@@ -438,11 +350,11 @@ st.markdown(
 # =========================
 st.markdown(
     """
-    <div class="moroccan-hero">
-        <div class="moroccan-badge">🇲🇦 Soutien Scolaire Intelligent</div>
+    <div class="hero">
+        <div class="hero-badge">🇲🇦 Soutien Scolaire Intelligent</div>
         <h1>📚 منصة الدعم الذكي</h1>
         <p>
-            منصة دعم مدرسية بواجهة بسيطة وخلفية مستوحاة من الزليج المغربي:
+            منصة دعم مدرسية بسيطة وواضحة للتلاميذ والأساتذة:
             شرح الدروس، حل التمارين بالصور، Quiz، دردشة القسم، وتتبع النتائج.
         </p>
     </div>
