@@ -351,10 +351,10 @@ st.markdown(
 st.markdown(
     """
     <div class="hero">
-        <div class="hero-badge">🇲🇦 Soutien Scolaire Intelligent</div>
+        <div class="hero-badge">🇲🇦 منصة تعليمية ذكية</div>
         <h1>📚 منصة الدعم الذكي</h1>
         <p>
-            منصة دعم مدرسية بسيطة وواضحة للتلاميذ والأساتذة:
+            منصة دعم تعليمية بسيطة وواضحة للتلاميذ، الأساتذة، ومتدربي التكوين المهني:
             شرح الدروس، حل التمارين بالصور، Quiz، دردشة القسم، وتتبع النتائج.
         </p>
     </div>
@@ -364,7 +364,7 @@ st.markdown(
 
 
 # =========================
-# إعدادات مدرسية
+# إعدادات دراسية: ابتدائي / إعدادي / تكوين مهني
 # =========================
 PRIMARY_LEVELS = [
     "الأول ابتدائي",
@@ -379,6 +379,15 @@ MIDDLE_LEVELS = [
     "الأولى إعدادي",
     "الثانية إعدادي",
     "الثالثة إعدادي"
+]
+
+VOCATIONAL_LEVELS = [
+    "مستوى التخصص",
+    "مستوى التأهيل",
+    "تقني",
+    "تقني متخصص",
+    "باكالوريا مهنية",
+    "تكوين مستمر"
 ]
 
 PRIMARY_SUBJECTS = [
@@ -401,43 +410,106 @@ MIDDLE_SUBJECTS = [
     "التربية الإسلامية"
 ]
 
+VOCATIONAL_SPECIALTIES = [
+    "Développement Digital / البرمجة والتطوير الرقمي",
+    "Infrastructure Digitale / الشبكات والأنظمة المعلوماتية",
+    "Marketing Digital / التسويق الرقمي",
+    "Gestion des Entreprises / تسيير المقاولات",
+    "Comptabilité / المحاسبة",
+    "Commerce / التجارة",
+    "Secrétariat et Bureautique / السكرتارية والمكتبيات",
+    "Logistique / اللوجستيك",
+    "Électricité / الكهرباء",
+    "Électronique / الإلكترونيات",
+    "Mécanique Automobile / ميكانيك السيارات",
+    "Diagnostic Automobile / تشخيص السيارات",
+    "Froid et Climatisation / التبريد والتكييف",
+    "Maintenance Industrielle / الصيانة الصناعية",
+    "Fabrication Mécanique / التصنيع الميكانيكي",
+    "Génie Civil / الهندسة المدنية",
+    "Bâtiment et Travaux Publics / البناء والأشغال العمومية",
+    "Menuiserie Aluminium / نجارة الألمنيوم",
+    "Infographie / التصميم الغرافيكي",
+    "Audiovisuel / السمعي البصري",
+    "Cuisine / الطبخ",
+    "Pâtisserie / الحلويات",
+    "Service Restaurant / خدمة المطاعم",
+    "Hôtellerie / الفندقة",
+    "Tourisme / السياحة",
+    "Coiffure / الحلاقة والتجميل",
+    "Couture / الخياطة",
+    "Agriculture / الفلاحة",
+    "Élevage / تربية المواشي",
+    "Soins Infirmiers / التمريض والمساعدة الصحية",
+    "Autre spécialité / تخصص آخر"
+]
+
 
 def get_levels_for_cycle(cycle):
     if cycle == "الابتدائي":
         return PRIMARY_LEVELS
-    return MIDDLE_LEVELS
+
+    if cycle == "الإعدادي":
+        return MIDDLE_LEVELS
+
+    return VOCATIONAL_LEVELS
 
 
 def get_subjects_for_cycle(cycle):
     if cycle == "الابتدائي":
         return PRIMARY_SUBJECTS
-    return MIDDLE_SUBJECTS
+
+    if cycle == "الإعدادي":
+        return MIDDLE_SUBJECTS
+
+    return VOCATIONAL_SPECIALTIES
 
 
 def school_context_selector(prefix="context"):
     school_cycle = st.selectbox(
-        "السلك الدراسي:",
-        ["الابتدائي", "الإعدادي"],
+        "نوع التكوين / السلك:",
+        ["الابتدائي", "الإعدادي", "التكوين المهني"],
         key=f"{prefix}_cycle"
     )
 
     school_level = st.selectbox(
-        "المستوى الدراسي:",
+        "المستوى:",
         get_levels_for_cycle(school_cycle),
         key=f"{prefix}_level"
     )
 
-    subject = st.selectbox(
-        "المادة:",
-        get_subjects_for_cycle(school_cycle),
-        key=f"{prefix}_subject"
-    )
+    if school_cycle == "التكوين المهني":
+        subject = st.selectbox(
+            "التخصص:",
+            get_subjects_for_cycle(school_cycle),
+            key=f"{prefix}_subject"
+        )
+
+        if subject == "Autre spécialité / تخصص آخر":
+            custom_specialty = st.text_input(
+                "اكتب التخصص:",
+                key=f"{prefix}_custom_specialty",
+                placeholder="مثال: Réparation Smartphones / إصلاح الهواتف"
+            )
+
+            if custom_specialty.strip():
+                subject = custom_specialty.strip()
+
+    else:
+        subject = st.selectbox(
+            "المادة:",
+            get_subjects_for_cycle(school_cycle),
+            key=f"{prefix}_subject"
+        )
 
     return school_cycle, school_level, subject
 
 
 def format_school_context(cycle, level, subject):
-    return f"{cycle} | {level} | {subject}"
+    if cycle == "التكوين المهني":
+        return f"{cycle} | {level} | التخصص: {subject}"
+
+    return f"{cycle} | {level} | المادة: {subject}"
 
 
 # =========================
@@ -982,12 +1054,10 @@ def render_class_chat(class_item, sender_type, account):
         f'{class_item.get("subject", "")}'
     )
 
-    message_key = f"chat_message_{class_item['id']}_{sender_type}"
-
     message_text = st.text_area(
         "اكتب رسالتك:",
         height=100,
-        key=message_key,
+        key=f"chat_message_{class_item['id']}_{sender_type}",
         placeholder="اكتب رسالة قصيرة وواضحة..."
     )
 
@@ -1021,9 +1091,7 @@ def render_class_chat(class_item, sender_type, account):
             created_at = msg.get("created_at", "")[:16].replace("T", " ")
 
             with st.container(border=True):
-                st.markdown(
-                    f"**{sender_icon} {sender_label}: {msg.get('sender_name', '')}**"
-                )
+                st.markdown(f"**{sender_icon} {sender_label}: {msg.get('sender_name', '')}**")
                 st.write(msg.get("message", ""))
                 st.caption(created_at)
 
@@ -1243,7 +1311,17 @@ def get_quiz_submissions(quiz_id):
 # Prompts
 # =========================
 def build_prompt(task, lang, school_cycle, school_level, subject, text):
-    context = f"""
+    if school_cycle == "التكوين المهني":
+        context = f"""
+السياق التعليمي:
+- نوع التكوين: التكوين المهني
+- المستوى: {school_level}
+- التخصص: {subject}
+- البلد: المغرب
+- الهدف: دعم المتدرب في فهم الدروس التطبيقية والنظرية والاستعداد للامتحانات والمراقبة المستمرة
+"""
+    else:
+        context = f"""
 السياق الدراسي:
 - السلك الدراسي: {school_cycle}
 - المستوى الدراسي: {school_level}
@@ -1254,17 +1332,17 @@ def build_prompt(task, lang, school_cycle, school_level, subject, text):
 
     if task == "شرح درس":
         return f"""
-أنت مساعد دعم مدرسي ذكي.
+أنت مساعد تعليمي ذكي.
 
 {context}
 
 اشرح الدرس التالي باللغة {lang}.
-اجعل الشرح مناسبًا تمامًا لتلميذ في {school_level}، مادة {subject}.
+اجعل الشرح مناسبًا للمستوى والتخصص أو المادة.
 استعمل أسلوبًا بسيطًا، واضحًا، ومنظمًا.
 
 نظم الجواب بهذا الشكل:
 1. شرح بسيط وواضح
-2. مثال تطبيقي مناسب للمستوى
+2. مثال تطبيقي مناسب
 3. أهم القواعد أو الأفكار التي يجب حفظها
 4. تمرين صغير في النهاية
 5. نصيحة للمراجعة
@@ -1275,12 +1353,12 @@ def build_prompt(task, lang, school_cycle, school_level, subject, text):
 
     if task == "تلخيص نص":
         return f"""
-أنت مساعد دعم مدرسي ذكي.
+أنت مساعد تعليمي ذكي.
 
 {context}
 
 لخص النص التالي باللغة {lang}.
-اجعل الملخص مناسبًا لتلميذ في {school_level}، مادة {subject}.
+اجعل الملخص مناسبًا للمستوى والتخصص أو المادة.
 
 نظم الجواب بهذا الشكل:
 1. ملخص قصير
@@ -1294,12 +1372,12 @@ def build_prompt(task, lang, school_cycle, school_level, subject, text):
 
     if task == "إنشاء أسئلة للمراجعة":
         return f"""
-أنت مساعد دعم مدرسي ذكي.
+أنت مساعد تعليمي ذكي.
 
 {context}
 
 أنشئ أسئلة مراجعة باللغة {lang}.
-اجعل الأسئلة مناسبة لتلميذ في {school_level}، مادة {subject}.
+اجعل الأسئلة مناسبة للمستوى والتخصص أو المادة.
 
 نظم الجواب بهذا الشكل:
 1. أسئلة مباشرة
@@ -1314,18 +1392,18 @@ def build_prompt(task, lang, school_cycle, school_level, subject, text):
 
     if task == "تبسيط مفهوم":
         return f"""
-أنت مساعد دعم مدرسي ذكي.
+أنت مساعد تعليمي ذكي.
 
 {context}
 
 بسط المفهوم التالي باللغة {lang}.
-اجعل الشرح مناسبًا لتلميذ في {school_level}، مادة {subject}.
+اجعل الشرح مناسبًا للمستوى والتخصص أو المادة.
 
 نظم الجواب بهذا الشكل:
 1. تعريف بسيط
 2. شرح كأنني مبتدئ
-3. مثال من الحياة اليومية
-4. مثال دراسي
+3. مثال من الحياة اليومية أو المجال المهني
+4. مثال دراسي أو تطبيقي
 5. خلاصة قصيرة
 
 المفهوم:
@@ -1334,12 +1412,12 @@ def build_prompt(task, lang, school_cycle, school_level, subject, text):
 
     if task == "تصحيح جواب":
         return f"""
-أنت مساعد دعم مدرسي ذكي.
+أنت مساعد تعليمي ذكي.
 
 {context}
 
-صحح جواب الطالب التالي باللغة {lang}.
-اجعل التصحيح مناسبًا لتلميذ في {school_level}، مادة {subject}.
+صحح جواب المتعلم التالي باللغة {lang}.
+اجعل التصحيح مناسبًا للمستوى والتخصص أو المادة.
 
 نظم الجواب بهذا الشكل:
 1. هل الجواب صحيح أم خطأ؟
@@ -1347,41 +1425,44 @@ def build_prompt(task, lang, school_cycle, school_level, subject, text):
 3. الجواب الصحيح
 4. نصيحة لتحسين الإجابة
 
-جواب الطالب:
+جواب المتعلم:
 {text}
 """
 
     return f"""
 أجب عن السؤال التالي باللغة {lang}
-وبطريقة مناسبة لتلميذ في {school_level}، مادة {subject}، ضمن الدعم المدرسي بالمغرب:
+وبطريقة مناسبة للسياق التالي:
 
+{context}
+
+السؤال:
 {text}
 """
 
 
 def build_image_question_prompt(lang, school_cycle, school_level, subject, student_question):
     return f"""
-أنت مساعد دعم مدرسي ذكي.
+أنت مساعد تعليمي ذكي.
 
-السياق الدراسي:
-- السلك الدراسي: {school_cycle}
-- المستوى الدراسي: {school_level}
-- المادة: {subject}
+السياق التعليمي:
+- نوع التكوين أو السلك: {school_cycle}
+- المستوى: {school_level}
+- المادة أو التخصص: {subject}
 - البلد: المغرب
-- الهدف: الدعم المدرسي
+- الهدف: الدعم المدرسي أو المهني حسب المستوى
 
-الصورة المرفقة قد تحتوي على تمرين، درس، نص، سؤال، جدول، مسألة، أو صفحة من كتاب/دفتر.
+الصورة المرفقة قد تحتوي على تمرين، درس، نص، سؤال، جدول، مسألة، رسم تقني، أو صفحة من كتاب/دفتر.
 
 مطلوب منك:
 1. اقرأ محتوى الصورة بعناية.
-2. إذا كانت الصورة غير واضحة، أخبر التلميذ بذلك بلطف واطلب صورة أوضح.
-3. أجب عن سؤال التلميذ باللغة {lang}.
-4. اجعل الشرح مناسبًا لتلميذ في {school_level}، مادة {subject}.
+2. إذا كانت الصورة غير واضحة، أخبر المتعلم بذلك بلطف واطلب صورة أوضح.
+3. أجب عن سؤال المتعلم باللغة {lang}.
+4. اجعل الشرح مناسبًا للمستوى والتخصص أو المادة.
 5. لا تعطِ الجواب فقط، بل اشرح الطريقة خطوة بخطوة.
-6. إذا كان تمرينًا، اشرح الحل بطريقة تعليمية.
-7. إذا كان نصًا، ساعد في الفهم أو التلخيص أو استخراج الأفكار حسب سؤال التلميذ.
+6. إذا كان تمرينًا أو تطبيقًا مهنيًا، اشرح الحل بطريقة تعليمية.
+7. إذا كان نصًا، ساعد في الفهم أو التلخيص أو استخراج الأفكار حسب السؤال.
 
-سؤال التلميذ:
+سؤال المتعلم:
 {student_question}
 
 نظم الجواب بهذا الشكل:
@@ -1404,16 +1485,16 @@ def build_quiz_prompt(lang, school_cycle, school_level, subject, topic, count, p
             avoid_text += f"{i}. {question}\n"
 
     return f"""
-أنت مساعد دعم مدرسي ذكي.
+أنت مساعد تعليمي ذكي.
 
 أنشئ اختبار Quiz باللغة {lang}.
 
-السياق الدراسي:
-- السلك الدراسي: {school_cycle}
-- المستوى الدراسي: {school_level}
-- المادة: {subject}
+السياق التعليمي:
+- نوع التكوين أو السلك: {school_cycle}
+- المستوى: {school_level}
+- المادة أو التخصص: {subject}
 - البلد: المغرب
-- الهدف: الدعم المدرسي
+- الهدف: إنشاء اختبار مناسب للمستوى الدراسي أو التكوين المهني
 
 الموضوع: {topic}
 عدد الأسئلة: {count}
@@ -1424,7 +1505,7 @@ def build_quiz_prompt(lang, school_cycle, school_level, subject, topic, count, p
 
 مهم جدًا:
 - اجعل الأسئلة مناسبة للمستوى: {school_level}.
-- اجعل الأسئلة مرتبطة بالمادة: {subject}.
+- اجعل الأسئلة مرتبطة بالمادة أو التخصص: {subject}.
 - اجعل الأسئلة مختلفة ومتنوعة.
 - لا تكرر نفس السؤال.
 - لا تستعمل نفس الفكرة بنفس الطريقة.
@@ -1490,7 +1571,7 @@ def render_score_card(score, total):
     percentage = int((score / total) * 100)
 
     if percentage >= 80:
-        message = "ممتاز بزاف! مستواك رائع 🇲🇦"
+        message = "ممتاز! مستواك رائع 🇲🇦"
     elif percentage >= 50:
         message = "مزيان، ولكن خاصك تراجع بعض النقاط."
     else:
@@ -1526,7 +1607,7 @@ if st.session_state.account is None:
         <div class="section-card">
             <div class="section-title">👤 الدخول إلى منصة الدعم</div>
             <div class="small-note">
-                اختر نوع الحساب: تلميذ أو أستاذ. المنصة موجهة للدعم المدرسي في الابتدائي والإعدادي.
+                اختر نوع الحساب: تلميذ أو أستاذ. يمكن استعمال المنصة أيضًا مع متدربي التكوين المهني.
             </div>
         </div>
         """,
@@ -1550,14 +1631,14 @@ if st.session_state.account is None:
 
     if account_type_choice == "تلميذ":
         if mode == "إنشاء حساب جديد":
-            if st.button("🚀 إنشاء حساب تلميذ"):
+            if st.button("🚀 إنشاء حساب تلميذ / متدرب"):
                 try:
                     ok, result = create_student(user_name, user_pin)
 
                     if ok:
                         st.session_state.account = result
                         st.session_state.account_type = "student"
-                        st.success("تم إنشاء حساب التلميذ بنجاح.")
+                        st.success("تم إنشاء الحساب بنجاح.")
                         st.rerun()
                     else:
                         st.warning(result)
@@ -1566,7 +1647,7 @@ if st.session_state.account is None:
                     st.error("حدث خطأ أثناء إنشاء الحساب.")
                     st.code(str(e))
         else:
-            if st.button("🚀 دخول التلميذ"):
+            if st.button("🚀 دخول التلميذ / المتدرب"):
                 try:
                     ok, result = login_student(user_name, user_pin)
 
@@ -1622,7 +1703,7 @@ if st.session_state.account is None:
 account = st.session_state.account
 account_type = st.session_state.account_type
 name_safe = html.escape(account["name"])
-role_label = "أستاذ" if account_type == "teacher" else "تلميذ"
+role_label = "أستاذ" if account_type == "teacher" else "تلميذ / متدرب"
 
 
 # =========================
@@ -1654,9 +1735,9 @@ if account_type == "teacher":
     st.markdown(
         """
         <div class="teacher-card">
-            <div class="teacher-title">🧑‍🏫 لوحة الأستاذ</div>
+            <div class="teacher-title">🧑‍🏫 لوحة الأستاذ / المؤطر</div>
             <div class="small-note">
-                يمكنك إنشاء أقسام للدعم، إرسال Quiz، الدردشة مع التلاميذ، ومتابعة النتائج.
+                يمكنك إنشاء أقسام للدعم، إرسال Quiz، الدردشة مع التلاميذ أو المتدربين، ومتابعة النتائج.
             </div>
         </div>
         """,
@@ -1679,7 +1760,7 @@ if account_type == "teacher":
 
         class_name = st.text_input(
             "اسم القسم:",
-            placeholder="مثال: دعم الثانية إعدادي - رياضيات"
+            placeholder="مثال: دعم الثانية إعدادي - رياضيات / Développement Digital"
         )
 
         school_cycle, school_level, subject = school_context_selector("teacher_class")
@@ -1699,14 +1780,14 @@ if account_type == "teacher":
 
                     if ok:
                         st.success("تم إنشاء القسم بنجاح.")
-                        st.markdown("### كود القسم للتلاميذ:")
+                        st.markdown("### كود القسم:")
                         st.markdown(
                             f"""
                             <div class="code-box">{result["class_code"]}</div>
                             """,
                             unsafe_allow_html=True
                         )
-                        st.info("أرسل هذا الكود للتلاميذ حتى ينضموا إلى قسم الدعم.")
+                        st.info("أرسل هذا الكود للتلاميذ أو المتدربين حتى ينضموا إلى قسم الدعم.")
                     else:
                         st.error(result)
 
@@ -1745,7 +1826,7 @@ if account_type == "teacher":
                     st.markdown("### 🗑️ حذف القسم")
 
                     st.warning(
-                        "إذا حذفت هذا القسم، سيتم حذف ارتباط التلاميذ به، ورسائل الدردشة، والاختبارات المرتبطة به."
+                        "إذا حذفت هذا القسم، سيتم حذف ارتباط التلاميذ أو المتدربين به، ورسائل الدردشة، والاختبارات المرتبطة به."
                     )
 
                     confirm_delete_class = st.checkbox(
@@ -1796,12 +1877,12 @@ if account_type == "teacher":
 
             quiz_title = st.text_input(
                 "عنوان Quiz:",
-                placeholder="مثال: Quiz المعادلات من الدرجة الأولى"
+                placeholder="مثال: Quiz المعادلات / Quiz Réseaux informatiques"
             )
 
             quiz_topic = st.text_area(
                 "موضوع Quiz:",
-                placeholder="مثال: المعادلات من الدرجة الأولى",
+                placeholder="مثال: المعادلات من الدرجة الأولى / LAN و WAN",
                 height=120
             )
 
@@ -1942,7 +2023,7 @@ if account_type == "teacher":
                             )
 
                             if ok:
-                                st.success("تم إنشاء Quiz وإرساله للتلاميذ بنجاح.")
+                                st.success("تم إنشاء Quiz وإرساله بنجاح.")
                             else:
                                 st.error(result)
 
@@ -1951,7 +2032,7 @@ if account_type == "teacher":
                         st.code(str(e))
 
     elif teacher_page == "نتائج التلاميذ":
-        st.markdown("## 📊 نتائج التلاميذ")
+        st.markdown("## 📊 نتائج التلاميذ / المتدربين")
 
         quizzes = get_teacher_quizzes(account["id"])
 
@@ -1977,11 +2058,11 @@ if account_type == "teacher":
             st.caption(f"الموضوع: {selected_quiz['topic']}")
 
             if not submissions:
-                st.info("لا توجد أجوبة من التلاميذ بعد.")
+                st.info("لا توجد أجوبة بعد.")
             else:
                 for sub in submissions:
                     with st.expander(f'{sub["student_name"]} — {sub["score"]}/{sub["total"]}'):
-                        st.markdown(f"**التلميذ:** {sub['student_name']}")
+                        st.markdown(f"**الاسم:** {sub['student_name']}")
                         st.markdown(f"**الدرجة:** {sub['score']} / {sub['total']}")
                         st.markdown(f"**التاريخ:** {sub['created_at'][:19]}")
 
@@ -1997,7 +2078,7 @@ if account_type == "teacher":
                             st.markdown("---")
                             st.markdown(f"### السؤال {idx + 1}")
                             st.write(item.get("question", ""))
-                            st.markdown("**جواب التلميذ:**")
+                            st.markdown("**جواب المتعلم:**")
                             st.write(item.get("student_answer", ""))
                             st.markdown("**الجواب الصحيح:**")
                             st.write(item.get("correct_answer", ""))
@@ -2035,7 +2116,7 @@ if account_type == "teacher":
         <div class="footer">
             <div class="footer-icons">🇲🇦 📚 🤖 ✨</div>
             <strong>منصة الدعم الذكي</strong><br>
-            لوحة الأستاذ — أقسام الدعم، Quiz، دردشة القسم، وتتبع نتائج التلاميذ
+            لوحة الأستاذ — أقسام الدعم، Quiz، دردشة القسم، وتتبع نتائج التلاميذ والمتدربين
         </div>
         """,
         unsafe_allow_html=True
@@ -2045,14 +2126,14 @@ if account_type == "teacher":
 
 
 # =========================
-# لوحة التلميذ
+# لوحة التلميذ / المتدرب
 # =========================
 st.markdown(
     """
     <div class="section-card">
-        <div class="section-title">⚙️ لوحة التلميذ</div>
+        <div class="section-title">⚙️ لوحة المتعلم</div>
         <div class="small-note">
-            استعمل المساعد الدراسي، ارفع صورة سؤال، حل Quiz، انضم إلى قسم دعم، تحدث مع الأستاذ، أو شاهد Quizzes من الأستاذ.
+            استعمل المساعد التعليمي، ارفع صورة سؤال، حل Quiz، انضم إلى قسم دعم، تحدث مع الأستاذ، أو شاهد Quizzes من الأستاذ.
         </div>
     </div>
     """,
@@ -2086,7 +2167,7 @@ school_cycle, school_level, subject = school_context_selector("student_context")
 
 
 # =========================
-# سجل التلميذ
+# سجل التلميذ / المتدرب
 # =========================
 if student_page == "سجل أسئلتي":
     st.markdown("## 📚 سجل أسئلتي")
@@ -2363,7 +2444,7 @@ elif student_page == "سؤال بصورة":
         <div class="section-card">
             <div class="section-title">📷 سؤال بصورة</div>
             <div class="small-note">
-                ارفع صورة لتمرين، درس، نص، مسألة، أو صفحة من كتاب/دفتر،
+                ارفع صورة لتمرين، درس، نص، مسألة، رسم تقني، أو صفحة من كتاب/دفتر،
                 واكتب سؤالك عنها. سيحاول المساعد قراءة الصورة وشرحها لك.
             </div>
         </div>
@@ -2451,7 +2532,7 @@ elif student_page == "Quiz Mode":
         <div class="section-card">
             <div class="section-title">🧠 Quiz Mode</div>
             <div class="small-note">
-                أنشئ اختبارًا شخصيًا حسب السلك، المستوى، والمادة.
+                أنشئ اختبارًا شخصيًا حسب السلك، المستوى، المادة، أو تخصص التكوين المهني.
             </div>
         </div>
         """,
@@ -2461,7 +2542,7 @@ elif student_page == "Quiz Mode":
     quiz_topic = st.text_area(
         "اكتب موضوع الاختبار:",
         height=120,
-        placeholder="مثال: المتطابقات الهامة، الجهاز الهضمي، الظواهر الكهربائية..."
+        placeholder="مثال: المتطابقات الهامة، الجهاز الهضمي، Réseaux LAN/WAN، المحاسبة..."
     )
 
     quiz_count = st.selectbox(
@@ -2542,7 +2623,7 @@ elif student_page == "Quiz Mode":
 
                 result_text += f"""
 السؤال {i + 1}: {q["question"]}
-جواب الطالب: {q["choices"][selected_index]}
+جواب المتعلم: {q["choices"][selected_index]}
 الجواب الصحيح: {q["choices"][correct_index]}
 النتيجة: {status}
 الشرح: {q["explanation"]}
@@ -2586,9 +2667,9 @@ else:
     st.markdown(
         """
         <div class="section-card">
-            <div class="section-title">🌟 المساعد الدراسي</div>
+            <div class="section-title">🌟 المساعد التعليمي</div>
             <div class="small-note">
-                اختر نوع الدعم، ثم اكتب الدرس أو السؤال. الجواب سيكون مناسبًا للسلك والمستوى والمادة.
+                اختر نوع الدعم، ثم اكتب الدرس أو السؤال. الجواب سيكون مناسبًا للمستوى، المادة، أو التخصص.
             </div>
         </div>
         """,
@@ -2614,7 +2695,14 @@ else:
             "لخص لي درس الجهاز الهضمي",
             "أعطني أسئلة مراجعة حول درس الطاقة الكهربائية",
             "اشرح لي المعادلات من الدرجة الأولى",
-            "بسط لي مفهوم السلسلة الغذائية"
+            "بسط لي مفهوم السلسلة الغذائية",
+            "اشرح لي مفهوم الخوارزميات Algorithmique بطريقة بسيطة",
+            "أعطني تمارين في المحاسبة حول الميزانية Bilan",
+            "اشرح لي الفرق بين réseau LAN و réseau WAN",
+            "اشرح لي دورة التبريد في التكييف",
+            "أعطني Quiz في كهرباء السيارات",
+            "اشرح لي كيفية إعداد فاتورة تجارية",
+            "بسط لي درس التسويق الرقمي Marketing Digital"
         ]
     )
 
@@ -2670,7 +2758,7 @@ st.markdown(
     <div class="footer">
         <div class="footer-icons">🇲🇦 📚 🤖 ✨</div>
         <strong>منصة الدعم الذكي</strong><br>
-        دعم مدرسي للابتدائي والإعدادي: سؤال بصورة، دردشة القسم، أقسام، Quizzes، نتائج، ومساعد دراسي ذكي<br>
+        دعم تعليمي للابتدائي، الإعدادي، والتكوين المهني: سؤال بصورة، دردشة القسم، أقسام، Quizzes، نتائج، ومساعد تعليمي ذكي<br>
         تم إنشاؤه باستعمال Streamlit و Google Gemini API و Supabase<br>
         <small style="opacity: 0.7;">© 2026 - جميع الحقوق محفوظة</small>
     </div>
